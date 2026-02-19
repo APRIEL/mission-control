@@ -143,107 +143,112 @@ export default function OfficePage() {
   }, [jobs, members]);
 
   return (
-    <main style={{ maxWidth: 1280, margin: "24px auto", fontFamily: "sans-serif", color: "#e5e7eb" }}>
-      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-        <Link href="/">Tasks</Link>
-        <Link href="/calendar">Calendar</Link>
-        <Link href="/pipeline">Pipeline</Link>
-        <Link href="/memory">Memory</Link>
-        <Link href="/team">Team</Link>
-        <strong>Office</strong>
-      </div>
+    <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", minHeight: "100vh", background: "#0b0f17", color: "#e5e7eb", fontFamily: "sans-serif" }}>
+      <aside style={{ borderRight: "1px solid #1f2937", padding: "16px 12px" }}>
+        <div style={{ fontWeight: 700, marginBottom: 14 }}>Mission Control</div>
+        <nav style={{ display: "grid", gap: 6, fontSize: 14 }}>
+          <Link href="/">Tasks</Link>
+          <Link href="/pipeline">Content</Link>
+          <Link href="/calendar">Calendar</Link>
+          <Link href="/memory">Memory</Link>
+          <Link href="/team">Team</Link>
+          <div style={{ padding: "6px 8px", borderRadius: 6, background: "#1f2937", fontWeight: 700 }}>Office</div>
+        </nav>
+      </aside>
 
-      <h1>The Office</h1>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14, marginBottom: 12, fontSize: 13, flexWrap: "wrap" }}>
-        <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-          <span>合計: {summary.total}</span>
-          <span style={{ color: "#22c55e" }}>Working: {summary.working}</span>
-          <span style={{ color: "#ef4444" }}>Blocked: {summary.blocked}</span>
-          <span style={{ color: "#f59e0b" }}>Idle: {summary.idle}</span>
-          <span style={{ color: "#94a3b8" }}>Offline: {summary.offline}</span>
+      <main style={{ padding: 20 }}>
+        <h1 style={{ marginTop: 0 }}>The Office</h1>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14, marginBottom: 12, fontSize: 13, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <span>合計: {summary.total}</span>
+            <span style={{ color: "#22c55e" }}>Working: {summary.working}</span>
+            <span style={{ color: "#ef4444" }}>Blocked: {summary.blocked}</span>
+            <span style={{ color: "#f59e0b" }}>Idle: {summary.idle}</span>
+            <span style={{ color: "#94a3b8" }}>Offline: {summary.offline}</span>
+          </div>
+
+          <div style={{ display: "flex", gap: 12, alignItems: "center", padding: "6px 10px", border: "1px solid #334155", borderRadius: 999, background: "#0b1220" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 999, background: "#22c55e", display: "inline-block" }} />Working
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 999, background: "#ef4444", display: "inline-block" }} />Blocked
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 999, background: "#f59e0b", display: "inline-block" }} />Idle
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 999, background: "#94a3b8", display: "inline-block" }} />Offline
+            </span>
+          </div>
         </div>
 
-        <div style={{ display: "flex", gap: 12, alignItems: "center", padding: "6px 10px", border: "1px solid #334155", borderRadius: 999, background: "#0b1220" }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span style={{ width: 8, height: 8, borderRadius: 999, background: "#22c55e", display: "inline-block" }} />Working
-          </span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span style={{ width: 8, height: 8, borderRadius: 999, background: "#ef4444", display: "inline-block" }} />Blocked
-          </span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span style={{ width: 8, height: 8, borderRadius: 999, background: "#f59e0b", display: "inline-block" }} />Idle
-          </span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span style={{ width: 8, height: 8, borderRadius: 999, background: "#94a3b8", display: "inline-block" }} />Offline
-          </span>
-        </div>
-      </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 12 }}>
+          <section
+            style={{
+              position: "relative",
+              minHeight: 620,
+              borderRadius: 12,
+              border: "1px solid #2b3444",
+              overflow: "hidden",
+              background:
+                "linear-gradient(45deg, #1b1b1f 25%, #22232a 25%, #22232a 50%, #1b1b1f 50%, #1b1b1f 75%, #22232a 75%)",
+              backgroundSize: "64px 64px",
+            }}
+          >
+            <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 70, background: "#374151" }} />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 12 }}>
-        <section
-          style={{
-            position: "relative",
-            minHeight: 620,
-            borderRadius: 12,
-            border: "1px solid #2b3444",
-            overflow: "hidden",
-            background:
-              "linear-gradient(45deg, #1b1b1f 25%, #22232a 25%, #22232a 50%, #1b1b1f 50%, #1b1b1f 75%, #22232a 75%)",
-            backgroundSize: "64px 64px",
-          }}
-        >
-          <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 70, background: "#374151" }} />
-
-          {SLOT_POSITIONS.map((p, idx) => (
-            <div key={idx} style={{ position: "absolute", left: p.left, top: p.top, transform: "translate(-50%, -50%)" }}>
-              <div style={{ width: 92, height: 12, background: "#a3a3a3", borderRadius: 2 }} />
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "0 8px" }}>
-                <div style={{ width: 8, height: 26, background: "#737373" }} />
-                <div style={{ width: 8, height: 26, background: "#737373" }} />
-              </div>
-              <div style={{ width: 26, height: 18, background: "#3b82f6", margin: "-50px auto 20px auto" }} />
-            </div>
-          ))}
-
-          {members.slice(0, SLOT_POSITIONS.length).map((m, i) => {
-            const pos = SLOT_POSITIONS[i];
-            return (
-              <div
-                key={m._id}
-                style={{
-                  position: "absolute",
-                  left: pos.left,
-                  top: `calc(${pos.top} + 58px)`,
-                  transform: "translate(-50%, -50%)",
-                }}
-                title={`${m.name} (${m.status})`}
-              >
-                <PixelAgent
-                  color={statusColor(m.status)}
-                  name={m.name}
-                  subtitle={m.focus || m.role}
-                  speech={m.status === "working" ? m.focus || "working..." : undefined}
-                />
-              </div>
-            );
-          })}
-        </section>
-
-        <aside style={{ border: "1px solid #2b3444", borderRadius: 12, padding: 10, background: "#0f172a" }}>
-          <strong>Job Assignments</strong>
-          <ul style={{ margin: "10px 0 0 0", paddingLeft: 18, display: "grid", gap: 8, fontSize: 13 }}>
-            {assignments.map((a, idx) => (
-              <li key={`${a.name}-${idx}`}>
-                <div style={{ fontWeight: 700 }}>{a.name}</div>
-                <div style={{ opacity: 0.85 }}>
-                  担当: {a.owner}（{a.ownerStatus}）
+            {SLOT_POSITIONS.map((p, idx) => (
+              <div key={idx} style={{ position: "absolute", left: p.left, top: p.top, transform: "translate(-50%, -50%)" }}>
+                <div style={{ width: 92, height: 12, background: "#a3a3a3", borderRadius: 2 }} />
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "0 8px" }}>
+                  <div style={{ width: 8, height: 26, background: "#737373" }} />
+                  <div style={{ width: 8, height: 26, background: "#737373" }} />
                 </div>
-                <div style={{ opacity: 0.75 }}>next: {fmt(a.nextRunAtMs)}</div>
-              </li>
+                <div style={{ width: 26, height: 18, background: "#3b82f6", margin: "-50px auto 20px auto" }} />
+              </div>
             ))}
-          </ul>
-        </aside>
-      </div>
-    </main>
+
+            {members.slice(0, SLOT_POSITIONS.length).map((m, i) => {
+              const pos = SLOT_POSITIONS[i];
+              return (
+                <div
+                  key={m._id}
+                  style={{
+                    position: "absolute",
+                    left: pos.left,
+                    top: `calc(${pos.top} + 58px)`,
+                    transform: "translate(-50%, -50%)",
+                  }}
+                  title={`${m.name} (${m.status})`}
+                >
+                  <PixelAgent
+                    color={statusColor(m.status)}
+                    name={m.name}
+                    subtitle={m.focus || m.role}
+                    speech={m.status === "working" ? m.focus || "working..." : undefined}
+                  />
+                </div>
+              );
+            })}
+          </section>
+
+          <aside style={{ border: "1px solid #2b3444", borderRadius: 12, padding: 10, background: "#0f172a" }}>
+            <strong>Job Assignments</strong>
+            <ul style={{ margin: "10px 0 0 0", paddingLeft: 18, display: "grid", gap: 8, fontSize: 13 }}>
+              {assignments.map((a, idx) => (
+                <li key={`${a.name}-${idx}`}>
+                  <div style={{ fontWeight: 700 }}>{a.name}</div>
+                  <div style={{ opacity: 0.85 }}>
+                    担当: {a.owner}（{a.ownerStatus}）
+                  </div>
+                  <div style={{ opacity: 0.75 }}>next: {fmt(a.nextRunAtMs)}</div>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        </div>
+      </main>
+    </div>
   );
 }
