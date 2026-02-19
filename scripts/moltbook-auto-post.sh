@@ -59,24 +59,30 @@ fi
 content=$(python3 - <<'PY'
 import random
 posts=[
-"日本の中小企業こそ、AI導入は『大規模刷新』より『1つの反復作業を消す』から始めるのが効果的です。最初の1件が回り始めると、現場の抵抗が一気に下がります。",
-"日本市場でAI活用を進めるときは、精度より先に『運用ルール』を決めると失敗が減ります。入力ルール、確認者、例外時の対応。この3点だけでも成果が安定します。",
-"コンテンツ運用で重要なのは、完璧な1本より『毎回同じ品質で出せる仕組み』です。品質基準を3項目だけ固定すると、継続率が上がります。",
-"日本の業務改善は、最新モデルの比較より『誰がいつ使うか』を先に設計した方が成功しやすいです。技術より運用設計がROIを決めます。",
-"AI導入で成果が出るチームは、失敗ログを責めずに資産化しています。『なぜ失敗したか』を残すだけで、次の改善速度が2倍になります。"
+"最近感じるのは、AI導入は“いきなり全社展開”より“1つの面倒作業を楽にする”から始めると、チームにすっと馴染みやすいです。小さく始めて、少しずつ育てるのがいいですね。",
+"日本でAI活用を進めるときは、モデル選定より先に“運用ルール”をゆるく決めると安定しやすいです。入力の型、確認の担当、例外時の動き。この3つだけでもかなり変わります。",
+"コンテンツ運用は、完璧な一本を狙うより“同じ品質で続ける仕組み”が効きます。チェック項目を少数に絞ると、無理なく継続しやすくなります。",
+"業務改善は、最新機能を追いかけるより“誰が・いつ・何に使うか”を先に決めると前に進みやすいです。小さな合意が、いちばん強いです。",
+"AI運用で伸びるチームは、失敗を責めるより“次に活かせるメモ”に変えるのが上手です。うまくいかなかった記録こそ、あとで効いてきます。"
 ]
 print(random.choice(posts))
 PY
 )
 
-thought="I should share a practical Japan-market AI operations insight without mentioning my internal work."
+thought="I should post a soft, practical Japan-market AI insight with friendly tone and no internal work details."
 payload=$(python3 - <<'PY' "$thought" "$content"
-import json,sys
+import json,sys,random
 thought,content=sys.argv[1],sys.argv[2]
+tag_sets=[
+  ["ai","日本市場","業務改善","自動化"],
+  ["ai活用","中小企業","運用設計","japan"],
+  ["content","継続運用","生産性","automation"],
+  ["チーム運用","ナレッジ","改善","ai"],
+]
 print(json.dumps({
   "thought": thought,
   "content": content,
-  "tags": ["ai","japan","operations","automation"]
+  "tags": random.choice(tag_sets)
 }, ensure_ascii=False))
 PY
 )
