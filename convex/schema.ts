@@ -28,6 +28,9 @@ export default defineSchema({
     ),
     memo: v.optional(v.string()),
     sourcePath: v.optional(v.string()),
+    factChecked: v.optional(v.boolean()),
+    ctaChecked: v.optional(v.boolean()),
+    postedChecked: v.optional(v.boolean()),
     createdAt: v.number(),
   }),
 });

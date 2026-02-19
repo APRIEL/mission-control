@@ -30,6 +30,9 @@ export const create = mutation({
       platform: args.platform,
       stage: "idea",
       memo: args.memo,
+      factChecked: false,
+      ctaChecked: false,
+      postedChecked: false,
       createdAt: Date.now(),
     });
   },
@@ -42,6 +45,23 @@ export const updateStage = mutation({
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { stage: args.stage });
+  },
+});
+
+export const updateChecklist = mutation({
+  args: {
+    id: v.id("contents"),
+    factChecked: v.optional(v.boolean()),
+    ctaChecked: v.optional(v.boolean()),
+    postedChecked: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const patch: { factChecked?: boolean; ctaChecked?: boolean; postedChecked?: boolean; stage?: "posted" } = {};
+    if (args.factChecked !== undefined) patch.factChecked = args.factChecked;
+    if (args.ctaChecked !== undefined) patch.ctaChecked = args.ctaChecked;
+    if (args.postedChecked !== undefined) patch.postedChecked = args.postedChecked;
+    if (args.postedChecked === true) patch.stage = "posted";
+    await ctx.db.patch(args.id, patch);
   },
 });
 
@@ -80,6 +100,9 @@ export const upsertFromDrafts = mutation({
         stage: item.stage,
         memo: item.memo,
         sourcePath: item.sourcePath,
+        factChecked: false,
+        ctaChecked: false,
+        postedChecked: false,
         createdAt: Date.now(),
       });
     }

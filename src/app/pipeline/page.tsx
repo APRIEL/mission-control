@@ -18,6 +18,7 @@ export default function PipelinePage() {
   const items = useQuery(api.contents.list) ?? [];
   const createItem = useMutation(api.contents.create);
   const updateStage = useMutation(api.contents.updateStage);
+  const updateChecklist = useMutation(api.contents.updateChecklist);
   const upsertFromDrafts = useMutation(api.contents.upsertFromDrafts);
 
   const [title, setTitle] = useState("");
@@ -76,7 +77,7 @@ export default function PipelinePage() {
   };
 
   return (
-    <main style={{ maxWidth: 1200, margin: "40px auto", fontFamily: "sans-serif" }}>
+    <main style={{ maxWidth: 1250, margin: "40px auto", fontFamily: "sans-serif" }}>
       <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
         <Link href="/">Tasks</Link>
         <Link href="/calendar">Calendar</Link>
@@ -123,29 +124,79 @@ export default function PipelinePage() {
           <section key={stage} style={{ border: "1px solid #ddd", borderRadius: 8, padding: 8 }}>
             <h3 style={{ margin: "0 0 8px 0" }}>{stage.toUpperCase()}</h3>
             <div style={{ display: "grid", gap: 8 }}>
-              {grouped[stage].map((item) => (
-                <article key={item._id} style={{ border: "1px solid #333", borderRadius: 8, padding: 8 }}>
-                  <div style={{ fontWeight: 700 }}>{item.title}</div>
-                  <div style={{ fontSize: 12, opacity: 0.8 }}>{platformLabel(item.platform)}</div>
-                  {item.memo && <div style={{ fontSize: 12, marginTop: 4 }}>{item.memo}</div>}
-                  {item.sourcePath && (
-                    <div style={{ fontSize: 11, opacity: 0.65, marginTop: 4, wordBreak: "break-all" }}>
-                      {item.sourcePath}
+              {grouped[stage].map((item) => {
+                const fact = item.factChecked ?? false;
+                const cta = item.ctaChecked ?? false;
+                const posted = item.postedChecked ?? false;
+                const readyByChecklist = fact && cta;
+
+                return (
+                  <article key={item._id} style={{ border: "1px solid #333", borderRadius: 8, padding: 8 }}>
+                    <div style={{ fontWeight: 700 }}>{item.title}</div>
+                    <div style={{ fontSize: 12, opacity: 0.8 }}>{platformLabel(item.platform)}</div>
+                    {item.memo && <div style={{ fontSize: 12, marginTop: 4 }}>{item.memo}</div>}
+                    {item.sourcePath && (
+                      <div style={{ fontSize: 11, opacity: 0.65, marginTop: 4, wordBreak: "break-all" }}>
+                        {item.sourcePath}
+                      </div>
+                    )}
+
+                    <div style={{ marginTop: 8, fontSize: 12 }}>
+                      <strong>投稿チェックリスト</strong>
+                      <div style={{ display: "grid", gap: 4, marginTop: 4 }}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={fact}
+                            onChange={(e) => updateChecklist({ id: item._id, factChecked: e.target.checked })}
+                          />{" "}
+                          事実確認
+                        </label>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={cta}
+                            onChange={(e) => updateChecklist({ id: item._id, ctaChecked: e.target.checked })}
+                          />{" "}
+                          CTA確認
+                        </label>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={posted}
+                            onChange={(e) => updateChecklist({ id: item._id, postedChecked: e.target.checked })}
+                          />{" "}
+                          投稿済み
+                        </label>
+                      </div>
                     </div>
-                  )}
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
-                    {STAGES.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => updateStage({ id: item._id, stage: s })}
-                        style={{ fontSize: 11, padding: "4px 6px", opacity: s === item.stage ? 1 : 0.7 }}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </article>
-              ))}
+
+                    <div style={{ marginTop: 8, fontSize: 11, opacity: 0.85 }}>
+                      最終確認状態: {readyByChecklist ? "READY" : "未完了"}
+                    </div>
+
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+                      {STAGES.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => updateStage({ id: item._id, stage: s })}
+                          style={{ fontSize: 11, padding: "4px 6px", opacity: s === item.stage ? 1 : 0.7 }}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                      {readyByChecklist && item.stage !== "ready" && item.stage !== "posted" && (
+                        <button
+                          onClick={() => updateStage({ id: item._id, stage: "ready" })}
+                          style={{ fontSize: 11, padding: "4px 6px" }}
+                        >
+                          READYへ
+                        </button>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </section>
         ))}
