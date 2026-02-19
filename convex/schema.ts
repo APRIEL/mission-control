@@ -8,4 +8,10 @@ export default defineSchema({
     assignee: v.union(v.literal("human"), v.literal("ai")),
     createdAt: v.number(),
   }),
+  events: defineTable({
+    title: v.string(),
+    schedule: v.string(), // 例: 毎日 09:00 JST
+    source: v.union(v.literal("manual"), v.literal("openclaw-cron")),
+    createdAt: v.number(),
+  }),
 });
