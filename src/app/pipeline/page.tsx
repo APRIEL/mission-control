@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
@@ -18,10 +18,13 @@ export default function PipelinePage() {
   const items = useQuery(api.contents.list) ?? [];
   const createItem = useMutation(api.contents.create);
   const updateStage = useMutation(api.contents.updateStage);
+  const upsertFromDrafts = useMutation(api.contents.upsertFromDrafts);
 
   const [title, setTitle] = useState("");
   const [platform, setPlatform] = useState<"tiktok" | "2xko" | "other">("tiktok");
   const [memo, setMemo] = useState("");
+  const [syncMessage, setSyncMessage] = useState("");
+  const didAutoSync = useRef(false);
 
   const grouped = useMemo(() => {
     return STAGES.reduce((acc, stage) => {
@@ -29,6 +32,36 @@ export default function PipelinePage() {
       return acc;
     }, {} as Record<Stage, typeof items>);
   }, [items]);
+
+  const syncDrafts = async () => {
+    try {
+      const res = await fetch("/api/pipeline/drafts");
+      const data = await res.json();
+      if (!data?.ok) {
+        setSyncMessage("下書き取込失敗: " + (data?.error ?? "unknown"));
+        return;
+      }
+
+      const incoming = (data.items ?? []) as Array<{
+        title: string;
+        platform: "tiktok" | "2xko" | "other";
+        stage: "draft";
+        memo?: string;
+        sourcePath: string;
+      }>;
+
+      await upsertFromDrafts({ items: incoming });
+      setSyncMessage(`下書き取込完了: ${incoming.length}件`);
+    } catch (e: any) {
+      setSyncMessage("下書き取込失敗: " + (e?.message ?? "unknown"));
+    }
+  };
+
+  useEffect(() => {
+    if (didAutoSync.current) return;
+    didAutoSync.current = true;
+    syncDrafts();
+  }, []);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -51,6 +84,12 @@ export default function PipelinePage() {
       </div>
 
       <h1>Mission Control - Content Pipeline</h1>
+
+      <button onClick={syncDrafts} style={{ padding: "8px 12px", marginBottom: 12 }}>
+        content-drafts を再取込
+      </button>
+
+      {syncMessage && <div style={{ marginBottom: 12, opacity: 0.9 }}>{syncMessage}</div>}
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 8, marginBottom: 20 }}>
         <input
@@ -89,6 +128,11 @@ export default function PipelinePage() {
                   <div style={{ fontWeight: 700 }}>{item.title}</div>
                   <div style={{ fontSize: 12, opacity: 0.8 }}>{platformLabel(item.platform)}</div>
                   {item.memo && <div style={{ fontSize: 12, marginTop: 4 }}>{item.memo}</div>}
+                  {item.sourcePath && (
+                    <div style={{ fontSize: 11, opacity: 0.65, marginTop: 4, wordBreak: "break-all" }}>
+                      {item.sourcePath}
+                    </div>
+                  )}
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
                     {STAGES.map((s) => (
                       <button

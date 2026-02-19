@@ -27,6 +27,7 @@ export default defineSchema({
       v.literal("posted")
     ),
     memo: v.optional(v.string()),
+    sourcePath: v.optional(v.string()),
     createdAt: v.number(),
   }),
 });
