@@ -116,6 +116,7 @@ export default function CalendarPage() {
   const createEvent = useMutation(api.events.create);
   const upsertFromCron = useMutation(api.events.upsertFromCron);
   const addActivity = useMutation(api.activities.add);
+  const createApproval = useMutation(api.approvals.create);
 
   const [title, setTitle] = useState("");
   const [schedule, setSchedule] = useState("");
@@ -155,7 +156,15 @@ export default function CalendarPage() {
     try {
       const res = await fetch("/api/openclaw/cron");
       const data = await res.json();
-      if (!data?.ok) return setSyncMessage("cron取得失敗: " + (data?.error ?? "unknown"));
+      if (!data?.ok) {
+        const msg = data?.error ?? "unknown";
+        const m = String(msg).match(/approval-timeout.*id[=:\s]+([a-z0-9-]+)/i);
+        if (m?.[1]) {
+          await createApproval({ title: `approval-timeout: ${m[1]}`, source: "calendar-sync", note: "cron同期で検出" });
+          await addActivity({ type: "approval", message: "approval-timeout を自動起票", detail: m[1], level: "warn" });
+        }
+        return setSyncMessage("cron取得失敗: " + msg);
+      }
 
       const items = (data.jobs ?? []).map((j: any) => ({
         title: j.name ?? "(no-name)",
@@ -168,6 +177,11 @@ export default function CalendarPage() {
       setSyncMessage(`cron自動同期完了: ${items.length}件`);
     } catch (e: any) {
       const msg = e?.message ?? "unknown";
+      const m = String(msg).match(/approval-timeout.*id[=:\s]+([a-z0-9-]+)/i);
+      if (m?.[1]) {
+        await createApproval({ title: `approval-timeout: ${m[1]}`, source: "calendar-sync", note: "cron同期例外で検出" });
+        await addActivity({ type: "approval", message: "approval-timeout を自動起票", detail: m[1], level: "warn" });
+      }
       await addActivity({ type: "calendar", message: "cron同期失敗", detail: msg, level: "warn" });
       setSyncMessage("cron取得失敗: " + msg);
     }

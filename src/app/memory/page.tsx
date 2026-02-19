@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AppShell } from "../../components/AppShell";
 
 type Hit = { file: string; line: number; text: string };
@@ -39,6 +40,7 @@ function groupLabel(file: string, now = new Date()) {
 }
 
 export default function MemoryPage() {
+  const searchParams = useSearchParams();
   const [files, setFiles] = useState<string[]>([]);
   const [selected, setSelected] = useState<string>("");
   const [content, setContent] = useState<string>("");
@@ -54,7 +56,8 @@ export default function MemoryPage() {
     const list = (data.files ?? []) as string[];
     setFiles(list);
     if (!selected && list.length > 0) {
-      const first = list.includes("MEMORY.md") ? "MEMORY.md" : list[0];
+      const requested = searchParams.get("file") || "";
+      const first = list.includes(requested) ? requested : list.includes("MEMORY.md") ? "MEMORY.md" : list[0];
       loadFile(first);
     }
     setStatus("");
@@ -88,6 +91,14 @@ export default function MemoryPage() {
   useEffect(() => {
     loadList();
   }, []);
+
+  useEffect(() => {
+    const requested = searchParams.get("file");
+    if (!requested) return;
+    if (files.includes(requested) && selected !== requested) {
+      loadFile(requested);
+    }
+  }, [searchParams, files, selected]);
 
   const longTerm = useMemo(() => files.find((f) => f === "MEMORY.md"), [files]);
   const journals = useMemo(

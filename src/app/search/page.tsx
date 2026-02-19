@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { AppShell } from "../../components/AppShell";
 
-type Hit = { area: string; title: string; sub?: string };
+type Hit = { area: string; title: string; sub?: string; href?: string };
 type MemoryHit = { file: string; line: number; text: string };
 
 const areaColor: Record<string, string> = {
@@ -57,19 +58,19 @@ export default function GlobalSearchPage() {
 
     for (const t of tasks) {
       const text = `${t.title} ${t.assignee} ${t.status}`.toLowerCase();
-      if (text.includes(s)) out.push({ area: "タスク", title: t.title, sub: `${t.assignee} / ${t.status}` });
+      if (text.includes(s)) out.push({ area: "タスク", title: t.title, sub: `${t.assignee} / ${t.status}`, href: "/" });
     }
     for (const c of contents) {
       const text = `${c.title} ${c.platform} ${c.stage} ${c.memo ?? ""}`.toLowerCase();
-      if (text.includes(s)) out.push({ area: "パイプライン", title: c.title, sub: `${c.platform} / ${c.stage}` });
+      if (text.includes(s)) out.push({ area: "パイプライン", title: c.title, sub: `${c.platform} / ${c.stage}`, href: "/pipeline" });
     }
     for (const e of events) {
       const text = `${e.title} ${e.schedule} ${e.source}`.toLowerCase();
-      if (text.includes(s)) out.push({ area: "カレンダー", title: e.title, sub: e.schedule });
+      if (text.includes(s)) out.push({ area: "カレンダー", title: e.title, sub: e.schedule, href: "/calendar" });
     }
     for (const m of team) {
       const text = `${m.name} ${m.role} ${m.focus ?? ""} ${m.ownsKeywords ?? ""}`.toLowerCase();
-      if (text.includes(s)) out.push({ area: "チーム", title: m.name, sub: `${m.role}` });
+      if (text.includes(s)) out.push({ area: "チーム", title: m.name, sub: `${m.role}`, href: "/team" });
     }
 
     return out.slice(0, 250);
@@ -93,7 +94,14 @@ export default function GlobalSearchPage() {
               <span style={{ width: 8, height: 8, borderRadius: 999, background: areaColor[h.area] ?? "#94a3b8", display: "inline-block" }} />
               <div style={{ fontSize: 12, color: areaColor[h.area] ?? "#94a3b8", fontWeight: 700 }}>{h.area}</div>
             </div>
-            <div style={{ fontWeight: 700 }}>{h.title}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ fontWeight: 700 }}>{h.title}</div>
+              {h.href && (
+                <Link href={h.href} style={{ marginLeft: "auto", fontSize: 12, color: "#93c5fd" }}>
+                  開く →
+                </Link>
+              )}
+            </div>
             {h.sub && <div style={{ fontSize: 12, opacity: 0.8 }}>{h.sub}</div>}
           </article>
         ))}
@@ -105,7 +113,12 @@ export default function GlobalSearchPage() {
           <div style={{ display: "grid", gap: 8 }}>
             {memoryHits.map((m, i) => (
               <article key={`${m.file}-${m.line}-${i}`} style={{ border: "1px solid #1f2937", borderRadius: 8, padding: 8, background: "#0f172a" }}>
-                <div style={{ fontSize: 12, opacity: 0.8 }}>{m.file}#{m.line}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ fontSize: 12, opacity: 0.8 }}>{m.file}#{m.line}</div>
+                  <Link href={`/memory?file=${encodeURIComponent(m.file)}`} style={{ marginLeft: "auto", fontSize: 12, color: "#c4b5fd" }}>
+                    メモリーで開く →
+                  </Link>
+                </div>
                 <div style={{ fontSize: 13 }}>{m.text || "(空行)"}</div>
               </article>
             ))}
