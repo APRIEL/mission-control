@@ -14,7 +14,7 @@ export const create = mutation({
     assignee: v.union(v.literal("human"), v.literal("ai")),
   },
   handler: async (ctx, args) => {
-    await ctx.db.insert("tasks", {
+    return await ctx.db.insert("tasks", {
       title: args.title,
       assignee: args.assignee,
       status: "todo",
