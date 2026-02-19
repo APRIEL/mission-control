@@ -14,6 +14,14 @@ function platformLabel(p: "tiktok" | "2xko" | "other") {
   return "Other";
 }
 
+function stageLabel(s: Stage) {
+  if (s === "idea") return "IDEA";
+  if (s === "draft") return "DRAFT";
+  if (s === "thumbnail") return "THUMBNAIL";
+  if (s === "ready") return "READY";
+  return "POSTED";
+}
+
 export default function PipelinePage() {
   const items = useQuery(api.contents.list) ?? [];
   const createItem = useMutation(api.contents.create);
@@ -32,6 +40,27 @@ export default function PipelinePage() {
       acc[stage] = items.filter((i) => i.stage === stage);
       return acc;
     }, {} as Record<Stage, typeof items>);
+  }, [items]);
+
+  const todayFocus = useMemo(() => {
+    return items
+      .filter((i) => i.stage !== "ready" && i.stage !== "posted")
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 8)
+      .map((i) => {
+        const fact = i.factChecked ?? false;
+        const cta = i.ctaChecked ?? false;
+        const nextAction = !fact
+          ? "事実確認"
+          : !cta
+          ? "CTA確認"
+          : i.stage === "idea"
+          ? "下書き作成"
+          : i.stage === "draft"
+          ? "サムネ準備"
+          : "最終確認";
+        return { ...i, nextAction };
+      });
   }, [items]);
 
   const syncDrafts = async () => {
@@ -91,6 +120,21 @@ export default function PipelinePage() {
       </button>
 
       {syncMessage && <div style={{ marginBottom: 12, opacity: 0.9 }}>{syncMessage}</div>}
+
+      <section style={{ border: "1px solid #666", borderRadius: 8, padding: 12, marginBottom: 20 }}>
+        <h2 style={{ marginTop: 0 }}>今日やること（READY未満）</h2>
+        {todayFocus.length === 0 ? (
+          <div style={{ fontSize: 14, opacity: 0.8 }}>未完了タスクはありません 🎉</div>
+        ) : (
+          <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
+            {todayFocus.map((i) => (
+              <li key={`focus-${i._id}`}>
+                <strong>{i.title}</strong>（{platformLabel(i.platform)} / {stageLabel(i.stage)}）→ 次: {i.nextAction}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 8, marginBottom: 20 }}>
         <input
