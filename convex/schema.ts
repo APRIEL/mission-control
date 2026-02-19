@@ -60,4 +60,10 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   }),
+  cronAssignments: defineTable({
+    jobName: v.string(),
+    memberId: v.id("teamMembers"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }),
 });

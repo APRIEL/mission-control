@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { AppShell } from "../../components/AppShell";
 
@@ -59,6 +59,9 @@ const SLOT_POSITIONS = [
 
 export default function OfficePage() {
   const members = useQuery(api.team.list) ?? [];
+  const fixedAssignments = useQuery(api.cronAssignments.list) ?? [];
+  const setCronAssignment = useMutation(api.cronAssignments.set);
+  const addActivity = useMutation(api.activities.add);
   const [jobs, setJobs] = useState<CronJob[]>([]);
 
   useEffect(() => {
@@ -80,15 +83,37 @@ export default function OfficePage() {
   }), [members]);
 
   const assignments = useMemo(() => {
+    const fixedMap: Record<string, string> = {};
+    for (const a of fixedAssignments) fixedMap[a.jobName] = a.memberId;
+
     return jobs.map((j) => {
+      const forcedId = fixedMap[j.name];
+      const forcedOwner = forcedId ? members.find((m) => m._id === forcedId) : undefined;
+
+      if (forcedOwner) {
+        return {
+          ...j,
+          owner: forcedOwner.name,
+          ownerStatus: forcedOwner.status,
+          ownerId: forcedOwner._id,
+          mode: "固定",
+        };
+      }
+
       const lower = (j.name || "").toLowerCase();
       const owner = members.find((m) => {
         const keys = (m.ownsKeywords || "").split(",").map((k) => k.trim().toLowerCase()).filter(Boolean);
         return keys.some((k) => lower.includes(k));
       });
-      return { ...j, owner: owner?.name ?? "未割当", ownerStatus: owner?.status ?? "-" };
+      return {
+        ...j,
+        owner: owner?.name ?? "未割当",
+        ownerStatus: owner?.status ?? "-",
+        ownerId: owner?._id ?? "",
+        mode: "自動",
+      };
     });
-  }, [jobs, members]);
+  }, [jobs, members, fixedAssignments]);
 
   return (
     <AppShell active="office" title="オフィス">
@@ -137,8 +162,22 @@ export default function OfficePage() {
             {assignments.map((a, idx) => (
               <li key={`${a.name}-${idx}`}>
                 <div style={{ fontWeight: 700 }}>{a.name}</div>
-                <div style={{ opacity: 0.85 }}>担当: {a.owner}（{a.ownerStatus}）</div>
-                <div style={{ opacity: 0.75 }}>次回: {fmt(a.nextRunAtMs)}</div>
+                <div style={{ opacity: 0.85 }}>担当: {a.owner}（{a.ownerStatus}） <span style={{ fontSize: 11, opacity: 0.7 }}>[{a.mode}]</span></div>
+                <div style={{ opacity: 0.75, marginBottom: 4 }}>次回: {fmt(a.nextRunAtMs)}</div>
+                <select
+                  value={a.mode === "固定" ? a.ownerId : ""}
+                  onChange={async (e) => {
+                    const next = e.target.value;
+                    await setCronAssignment({ jobName: a.name, memberId: next || undefined });
+                    await addActivity({ type: "office", message: "cron担当更新", detail: `${a.name} -> ${next ? members.find((m) => m._id === next)?.name ?? next : "自動"}`, level: "info" });
+                  }}
+                  style={{ width: "100%", padding: 4, borderRadius: 6, fontSize: 12 }}
+                >
+                  <option value="">自動（キーワード判定）</option>
+                  {members.map((m) => (
+                    <option key={m._id} value={m._id}>{m.name}</option>
+                  ))}
+                </select>
               </li>
             ))}
           </ul>
