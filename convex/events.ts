@@ -42,3 +42,37 @@ export const seedIfEmpty = mutation({
     }
   },
 });
+
+export const upsertFromCron = mutation({
+  args: {
+    items: v.array(
+      v.object({
+        title: v.string(),
+        schedule: v.string(),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    for (const item of args.items) {
+      const exists = await ctx.db
+        .query("events")
+        .filter((q) =>
+          q.and(
+            q.eq(q.field("title"), item.title),
+            q.eq(q.field("schedule"), item.schedule),
+            q.eq(q.field("source"), "openclaw-cron")
+          )
+        )
+        .first();
+
+      if (!exists) {
+        await ctx.db.insert("events", {
+          title: item.title,
+          schedule: item.schedule,
+          source: "openclaw-cron",
+          createdAt: Date.now(),
+        });
+      }
+    }
+  },
+});

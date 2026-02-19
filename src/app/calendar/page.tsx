@@ -9,6 +9,7 @@ export default function CalendarPage() {
   const events = useQuery(api.events.list) ?? [];
   const createEvent = useMutation(api.events.create);
   const seedIfEmpty = useMutation(api.events.seedIfEmpty);
+  const upsertFromCron = useMutation(api.events.upsertFromCron);
 
   const [title, setTitle] = useState("");
   const [schedule, setSchedule] = useState("");
@@ -17,6 +18,25 @@ export default function CalendarPage() {
     seedIfEmpty();
   }, [seedIfEmpty]);
 
+  const syncFromOpenClaw = async () => {
+    const res = await fetch("/api/openclaw/cron");
+    const data = await res.json();
+    if (!data?.ok) {
+      alert("cron取得失敗: " + (data?.error ?? "unknown"));
+      return;
+    }
+
+    const items = (data.jobs ?? []).map((j: any) => ({
+      title: j.name ?? "(no-name)",
+      schedule:
+        j.schedule?.kind === "cron"
+          ? `${j.schedule.expr} (${j.schedule.tz ?? "UTC"})`
+          : JSON.stringify(j.schedule),
+    }));
+
+    await upsertFromCron({ items });
+    alert("cron同期が完了しました");
+  };
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !schedule.trim()) return;
@@ -37,6 +57,10 @@ export default function CalendarPage() {
       </div>
 
       <h1>Mission Control - Calendar</h1>
+
+      <button onClick={syncFromOpenClaw} style={{ padding: "8px 12px", marginBottom: 12 }}>
+        OpenClaw cron を同期
+      </button>
 
       <form onSubmit={onSubmit} style={{ display: "flex", gap: 8, marginBottom: 20 }}>
         <input
