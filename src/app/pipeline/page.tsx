@@ -120,6 +120,8 @@ export default function PipelinePage() {
         <Link href="/calendar">Calendar</Link>
         <strong>Pipeline</strong>
         <Link href="/memory">Memory</Link>
+        <Link href="/team">Team</Link>
+        <Link href="/office">Office</Link>
       </div>
 
       <h1>Mission Control - Content Pipeline</h1>

@@ -11,6 +11,7 @@
 import type * as contents from "../contents.js";
 import type * as events from "../events.js";
 import type * as tasks from "../tasks.js";
+import type * as team from "../team.js";
 
 import type {
   ApiFromModules,
@@ -22,6 +23,7 @@ declare const fullApi: ApiFromModules<{
   contents: typeof contents;
   events: typeof events;
   tasks: typeof tasks;
+  team: typeof team;
 }>;
 
 /**

@@ -67,6 +67,8 @@ export default function MemoryPage() {
         <Link href="/calendar">Calendar</Link>
         <Link href="/pipeline">Pipeline</Link>
         <strong>Memory</strong>
+        <Link href="/team">Team</Link>
+        <Link href="/office">Office</Link>
       </div>
 
       <h1>Mission Control - Memory</h1>

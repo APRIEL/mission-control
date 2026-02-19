@@ -27,6 +27,8 @@ export default function Home() {
         <Link href="/calendar">Calendar</Link>
         <Link href="/pipeline">Pipeline</Link>
         <Link href="/memory">Memory</Link>
+        <Link href="/team">Team</Link>
+        <Link href="/office">Office</Link>
       </div>
 
       <h1>Mission Control - Tasks</h1>

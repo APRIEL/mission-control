@@ -36,4 +36,11 @@ export default defineSchema({
     discordMessageId: v.optional(v.string()),
     createdAt: v.number(),
   }),
+  teamMembers: defineTable({
+    name: v.string(),
+    role: v.string(),
+    status: v.union(v.literal("idle"), v.literal("working"), v.literal("blocked"), v.literal("offline")),
+    focus: v.optional(v.string()),
+    createdAt: v.number(),
+  }),
 });
