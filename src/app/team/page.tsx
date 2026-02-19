@@ -61,7 +61,7 @@ export default function TeamPage() {
     return cand;
   };
 
-  const chief = take(findBy(["chief", "staff", "manager", "lead", "統括", "責任者", "マネージャー"])) || take(ordered[0]);
+  const chief = take(findBy(["chief", "staff", "manager", "lead", "統括", "責任者", "マネージャー", "管理者"])) || take(ordered[0]);
   const scout = take(findBy(["scout", "analyst", "research", "調査", "リサーチ", "分析"]));
   const quill = take(findBy(["quill", "writer", "content", "ライター", "記事", "執筆", "コンテンツ"]));
   const pixel = take(findBy(["pixel", "design", "thumbnail", "デザイン", "サムネ", "画像"]));
