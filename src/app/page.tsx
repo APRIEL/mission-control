@@ -24,13 +24,22 @@ function colDot(c: Col) {
 
 export default function Home() {
   const tasks = useQuery(api.tasks.list) ?? [];
+  const members = useQuery(api.team.list) ?? [];
   const createTask = useMutation(api.tasks.create);
   const updateStatus = useMutation(api.tasks.updateStatus);
+  const updateAssigneeMember = useMutation(api.tasks.updateAssigneeMember);
   const addActivity = useMutation(api.activities.add);
 
   const [title, setTitle] = useState("");
   const [assignee, setAssignee] = useState<"human" | "ai">("ai");
+  const [assigneeMemberId, setAssigneeMemberId] = useState<string>("");
   const [filter, setFilter] = useState<"all" | "human" | "ai">("all");
+
+  const memberNameMap = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const mem of members) m[mem._id] = mem.name;
+    return m;
+  }, [members]);
 
   const filtered = useMemo(() => {
     if (filter === "all") return tasks;
@@ -56,15 +65,15 @@ export default function Home() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-    await createTask({ title: title.trim(), assignee });
-    await addActivity({ type: "task", message: "タスク追加", detail: `${title.trim()} (${assignee})`, level: "info" });
+    await createTask({ title: title.trim(), assignee, assigneeMemberId: assigneeMemberId || undefined });
+    await addActivity({ type: "task", message: "タスク追加", detail: `${title.trim()} (${assignee}${assigneeMemberId ? ` / ${memberNameMap[assigneeMemberId] ?? "未設定"}` : ""})`, level: "info" });
     setTitle("");
   };
 
   const quickAdd = async (col: Col) => {
     const t = window.prompt(`${colLabel(col)} に追加するタスク名`, "");
     if (t === null || !t.trim()) return;
-    const id = await createTask({ title: t.trim(), assignee });
+    const id = await createTask({ title: t.trim(), assignee, assigneeMemberId: assigneeMemberId || undefined });
     if (col !== "todo") await updateStatus({ id, status: col });
     await addActivity({ type: "task", message: `タスク追加（${colLabel(col)}）`, detail: t.trim(), level: "info" });
   };
@@ -98,6 +107,12 @@ export default function Home() {
           <option value="ai">AI担当</option>
           <option value="human">人間担当</option>
         </select>
+        <select value={assigneeMemberId} onChange={(e) => setAssigneeMemberId(e.target.value)} style={{ padding: 8, borderRadius: 8 }}>
+          <option value="">チーム割当なし</option>
+          {members.map((m) => (
+            <option key={m._id} value={m._id}>{m.name}</option>
+          ))}
+        </select>
         <select value={filter} onChange={(e) => setFilter(e.target.value as "all" | "human" | "ai")} style={{ padding: 8, borderRadius: 8 }}>
           <option value="all">全担当</option>
           <option value="ai">AIのみ</option>
@@ -125,6 +140,25 @@ export default function Home() {
                   <article key={t._id} style={{ border: "1px solid #2b3443", borderRadius: 10, padding: 10, background: "#111827" }}>
                     <div style={{ fontWeight: 700 }}>{t.title}</div>
                     <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>担当: {t.assignee === "ai" ? "AI" : "人間"}</div>
+                    <div style={{ fontSize: 12, opacity: 0.9, marginTop: 2 }}>チーム担当: {t.assigneeMemberId ? (memberNameMap[t.assigneeMemberId] ?? "不明") : "未割当"}</div>
+
+                    <div style={{ marginTop: 8 }}>
+                      <select
+                        value={t.assigneeMemberId ?? ""}
+                        onChange={async (e) => {
+                          const next = e.target.value;
+                          await updateAssigneeMember({ id: t._id, assigneeMemberId: next || undefined });
+                          await addActivity({ type: "task", message: "チーム担当更新", detail: `${t.title} -> ${next ? (memberNameMap[next] ?? next) : "未割当"}`, level: "info" });
+                        }}
+                        style={{ padding: "4px 6px", borderRadius: 6, fontSize: 12 }}
+                      >
+                        <option value="">未割当</option>
+                        {members.map((m) => (
+                          <option key={m._id} value={m._id}>{m.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
                       {COLUMNS.map((s) => (
                         <button

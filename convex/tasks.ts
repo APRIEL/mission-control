@@ -12,11 +12,13 @@ export const create = mutation({
   args: {
     title: v.string(),
     assignee: v.union(v.literal("human"), v.literal("ai")),
+    assigneeMemberId: v.optional(v.id("teamMembers")),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("tasks", {
       title: args.title,
       assignee: args.assignee,
+      assigneeMemberId: args.assigneeMemberId,
       status: "todo",
       createdAt: Date.now(),
     });
@@ -30,5 +32,15 @@ export const updateStatus = mutation({
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { status: args.status });
+  },
+});
+
+export const updateAssigneeMember = mutation({
+  args: {
+    id: v.id("tasks"),
+    assigneeMemberId: v.optional(v.id("teamMembers")),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { assigneeMemberId: args.assigneeMemberId });
   },
 });

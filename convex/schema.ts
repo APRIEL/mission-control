@@ -6,6 +6,7 @@ export default defineSchema({
     title: v.string(),
     status: v.union(v.literal("todo"), v.literal("doing"), v.literal("review"), v.literal("done")),
     assignee: v.union(v.literal("human"), v.literal("ai")),
+    assigneeMemberId: v.optional(v.id("teamMembers")),
     createdAt: v.number(),
   }),
   events: defineTable({
