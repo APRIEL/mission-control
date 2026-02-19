@@ -63,6 +63,13 @@ export default function PipelinePage() {
       });
   }, [items]);
 
+  const readyQueue = useMemo(() => {
+    return items
+      .filter((i) => i.stage === "ready" && !(i.postedChecked ?? false))
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 10);
+  }, [items]);
+
   const syncDrafts = async () => {
     try {
       const res = await fetch("/api/pipeline/drafts");
@@ -120,6 +127,27 @@ export default function PipelinePage() {
       </button>
 
       {syncMessage && <div style={{ marginBottom: 12, opacity: 0.9 }}>{syncMessage}</div>}
+
+      <section style={{ border: "1px solid #666", borderRadius: 8, padding: 12, marginBottom: 20 }}>
+        <h2 style={{ marginTop: 0 }}>最終確認キュー（READY）</h2>
+        {readyQueue.length === 0 ? (
+          <div style={{ fontSize: 14, opacity: 0.8 }}>投稿待ちはありません。</div>
+        ) : (
+          <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 8 }}>
+            {readyQueue.map((i) => (
+              <li key={`ready-${i._id}`}>
+                <strong>{i.title}</strong>（{platformLabel(i.platform)}）
+                <button
+                  style={{ marginLeft: 8, fontSize: 12, padding: "2px 8px" }}
+                  onClick={() => updateChecklist({ id: i._id, postedChecked: true })}
+                >
+                  投稿済みにする
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section style={{ border: "1px solid #666", borderRadius: 8, padding: 12, marginBottom: 20 }}>
         <h2 style={{ marginTop: 0 }}>今日やること（READY未満）</h2>
