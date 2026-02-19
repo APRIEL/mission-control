@@ -62,6 +62,18 @@ function colorByTitle(title: string) {
   return "#1f3a8a";
 }
 
+function jpJobName(name: string) {
+  if (name === "content:2xko-daily-draft") return "2XKO記事下書き（毎日）";
+  if (name === "content:tiktok-ai-automation-daily-pack") return "TikTok投稿パック（毎日）";
+  if (name === "research:ai-monetization-hourly") return "収益化リサーチ（毎時）";
+  if (name === "briefing:morning-daily") return "モーニングブリーフィング（毎日）";
+  if (name === "healthcheck:backup-alert") return "バックアップ監視（2時間ごと）";
+  if (name === "healthcheck:unattended-upgrades-alert") return "自動更新監視（2時間ごと）";
+  if (name === "healthcheck:security-audit") return "セキュリティ監査（毎日）";
+  if (name === "healthcheck:update-status") return "更新状況確認（毎日）";
+  return name;
+}
+
 function buildWeekItems(events: any[]): WeekItem[] {
   const out: WeekItem[] = [];
 
@@ -228,8 +240,8 @@ export default function CalendarPage() {
             <span style={{ opacity: 0.75 }}>なし</span>
           ) : (
             alwaysRunning.slice(0, 8).map((e) => (
-              <span key={e._id} style={{ background: "#1e3a8a", border: "1px solid #3b82f6", borderRadius: 999, fontSize: 12, padding: "4px 10px" }}>
-                {e.title}
+              <span key={e._id} style={{ background: "#1e3a8a", border: "1px solid #3b82f6", borderRadius: 999, fontSize: 12, padding: "4px 10px" }} title={e.title}>
+                {jpJobName(e.title)}
               </span>
             ))
           )}
@@ -244,7 +256,7 @@ export default function CalendarPage() {
               <div style={{ display: "grid", gap: 6 }}>
                 {groupedByDay[d].slice(0, 6).map((it) => (
                   <div key={it.id} style={{ border: "1px solid #334155", borderLeft: `4px solid ${it.color}`, background: "#1b2130", borderRadius: 8, padding: 6 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700 }}>{it.title}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700 }} title={it.title}>{jpJobName(it.title)}</div>
                     <div style={{ fontSize: 11, opacity: 0.75 }}>{it.timeLabel}</div>
                   </div>
                 ))}
@@ -261,7 +273,7 @@ export default function CalendarPage() {
             ) : (
               todayBoardItems.map((it) => (
                 <div key={it.id} style={{ border: "1px solid #334155", borderLeft: `4px solid ${it.color}`, background: "#1b2130", borderRadius: 8, padding: 8 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700 }}>{it.title}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700 }} title={it.title}>{jpJobName(it.title)}</div>
                   <div style={{ fontSize: 12, opacity: 0.75 }}>{it.timeLabel}</div>
                 </div>
               ))
@@ -278,7 +290,7 @@ export default function CalendarPage() {
           <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
             {upcoming24h.map((e) => (
               <li key={e._id}>
-                <strong>{e.title}</strong> / {fmt(e.nextRunAtMs)} <span style={{ opacity: 0.75 }}>({relFromNow(e.nextRunAtMs)})</span>
+                <strong title={e.title}>{jpJobName(e.title)}</strong> / {fmt(e.nextRunAtMs)} <span style={{ opacity: 0.75 }}>({relFromNow(e.nextRunAtMs)})</span>
               </li>
             ))}
           </ul>

@@ -46,6 +46,18 @@ function fmt(ms?: number | null) {
   return new Date(ms).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
 }
 
+function jpJobName(name: string) {
+  if (name === "content:2xko-daily-draft") return "2XKO記事下書き（毎日）";
+  if (name === "content:tiktok-ai-automation-daily-pack") return "TikTok投稿パック（毎日）";
+  if (name === "research:ai-monetization-hourly") return "収益化リサーチ（毎時）";
+  if (name === "briefing:morning-daily") return "モーニングブリーフィング（毎日）";
+  if (name === "healthcheck:backup-alert") return "バックアップ監視（2時間ごと）";
+  if (name === "healthcheck:unattended-upgrades-alert") return "自動更新監視（2時間ごと）";
+  if (name === "healthcheck:security-audit") return "セキュリティ監査（毎日）";
+  if (name === "healthcheck:update-status") return "更新状況確認（毎日）";
+  return name;
+}
+
 const SLOT_POSITIONS = [
   { left: "18%", top: "28%" },
   { left: "34%", top: "28%" },
@@ -161,7 +173,8 @@ export default function OfficePage() {
           <ul style={{ margin: "10px 0 0 0", paddingLeft: 18, display: "grid", gap: 8, fontSize: 13 }}>
             {assignments.map((a, idx) => (
               <li key={`${a.name}-${idx}`}>
-                <div style={{ fontWeight: 700 }}>{a.name}</div>
+                <div style={{ fontWeight: 700 }}>{jpJobName(a.name)}</div>
+                <div style={{ fontSize: 11, opacity: 0.6 }}>{a.name}</div>
                 <div style={{ opacity: 0.85 }}>担当: {a.owner}（{a.ownerStatus}） <span style={{ fontSize: 11, opacity: 0.7 }}>[{a.mode}]</span></div>
                 <div style={{ opacity: 0.75, marginBottom: 4 }}>次回: {fmt(a.nextRunAtMs)}</div>
                 <select
