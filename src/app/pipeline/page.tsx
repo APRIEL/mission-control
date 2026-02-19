@@ -38,6 +38,7 @@ export default function PipelinePage() {
   const updatePublishMeta = useMutation(api.contents.updatePublishMeta);
   const upsertFromDrafts = useMutation(api.contents.upsertFromDrafts);
   const addActivity = useMutation(api.activities.add);
+  const createApproval = useMutation(api.approvals.create);
 
   const [title, setTitle] = useState("");
   const [platform, setPlatform] = useState<"tiktok" | "2xko" | "other">("tiktok");
@@ -52,17 +53,33 @@ export default function PipelinePage() {
     }, {} as Record<Stage, typeof items>);
   }, [items]);
 
+  const maybeCreateTimeoutApproval = async (raw: string, source: string) => {
+    const m = String(raw).match(/approval-timeout.*id[=:\s]+([a-z0-9-]+)/i);
+    if (!m?.[1]) return;
+    const id = m[1];
+    await createApproval({ title: `approval-timeout: ${id}`, source, note: "自動検出" });
+    await addActivity({ type: "approval", message: "approval-timeout を自動起票", detail: `${source}: ${id}`, level: "warn" });
+  };
+
   const syncDrafts = async () => {
     try {
       const res = await fetch("/api/pipeline/drafts");
       const data = await res.json();
-      if (!data?.ok) return setSyncMessage("下書き取込失敗: " + (data?.error ?? "unknown"));
+      if (!data?.ok) {
+        const msg = data?.error ?? "unknown";
+        await maybeCreateTimeoutApproval(msg, "pipeline-drafts");
+        await addActivity({ type: "pipeline", message: "下書き取込失敗", detail: msg, level: "warn" });
+        return setSyncMessage("下書き取込失敗: " + msg);
+      }
       const incoming = (data.items ?? []) as Array<{ title: string; platform: "tiktok" | "2xko" | "other"; stage: "draft"; memo?: string; sourcePath: string }>;
       await upsertFromDrafts({ items: incoming });
       await addActivity({ type: "pipeline", message: "下書き取込", detail: `${incoming.length}件`, level: "info" });
       setSyncMessage(`下書き取込完了: ${incoming.length}件`);
     } catch (e: any) {
-      setSyncMessage("下書き取込失敗: " + (e?.message ?? "unknown"));
+      const msg = e?.message ?? "unknown";
+      await maybeCreateTimeoutApproval(msg, "pipeline-drafts");
+      await addActivity({ type: "pipeline", message: "下書き取込失敗", detail: msg, level: "warn" });
+      setSyncMessage("下書き取込失敗: " + msg);
     }
   };
 
@@ -169,6 +186,9 @@ export default function PipelinePage() {
                                   const res = await fetch("/api/publish/latest-2xko");
                                   const data = await res.json();
                                   if (!data?.ok || !data?.url) {
+                                    const msg = data?.error ?? "2xko latest url fetch failed";
+                                    await maybeCreateTimeoutApproval(msg, "publish-latest-2xko");
+                                    await addActivity({ type: "pipeline", message: "2XKO公開URL自動取得失敗", detail: msg, level: "warn" });
                                     setSyncMessage("2XKO公開URLの自動取得に失敗しました。手動入力してください。");
                                     const manual = window.prompt("公開済みの記事URLを貼ってください", item.publishedUrl ?? "");
                                     if (manual === null) return;
@@ -176,6 +196,7 @@ export default function PipelinePage() {
                                     return;
                                   }
                                   await updatePublishMeta({ id: item._id, publishedUrl: data.url });
+                                  await addActivity({ type: "pipeline", message: "2XKO公開URL自動反映", detail: item.title, level: "info" });
                                   setSyncMessage("2XKO公開URLを自動反映して投稿済みにしました。");
                                 }}
                               >
