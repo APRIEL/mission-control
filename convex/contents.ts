@@ -56,11 +56,30 @@ export const updateChecklist = mutation({
     postedChecked: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const patch: { factChecked?: boolean; ctaChecked?: boolean; postedChecked?: boolean; stage?: "posted" } = {};
+    const current = await ctx.db.get(args.id);
+    if (!current) return;
+
+    const nextFact = args.factChecked ?? current.factChecked ?? false;
+    const nextCta = args.ctaChecked ?? current.ctaChecked ?? false;
+    const nextPosted = args.postedChecked ?? current.postedChecked ?? false;
+
+    const patch: {
+      factChecked?: boolean;
+      ctaChecked?: boolean;
+      postedChecked?: boolean;
+      stage?: "ready" | "posted";
+    } = {};
+
     if (args.factChecked !== undefined) patch.factChecked = args.factChecked;
     if (args.ctaChecked !== undefined) patch.ctaChecked = args.ctaChecked;
     if (args.postedChecked !== undefined) patch.postedChecked = args.postedChecked;
-    if (args.postedChecked === true) patch.stage = "posted";
+
+    if (nextPosted) {
+      patch.stage = "posted";
+    } else if (nextFact && nextCta && current.stage !== "posted") {
+      patch.stage = "ready";
+    }
+
     await ctx.db.patch(args.id, patch);
   },
 });
