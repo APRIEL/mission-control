@@ -12,6 +12,32 @@ function prettyFileName(file: string) {
   return file;
 }
 
+function parseJournalDate(file: string) {
+  const m = file.match(/^memory\/(\d{4})-(\d{2})-(\d{2})\.md$/);
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]) - 1;
+  const d = Number(m[3]);
+  return new Date(y, mo, d);
+}
+
+function startOfDay(dt: Date) {
+  return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+}
+
+function groupLabel(file: string, now = new Date()) {
+  const d = parseJournalDate(file);
+  if (!d) return "その他";
+  const today = startOfDay(now);
+  const target = startOfDay(d);
+  const diffDays = Math.floor((today.getTime() - target.getTime()) / 86400000);
+
+  if (diffDays === 1) return "Yesterday (1)";
+  if (diffDays >= 0 && diffDays <= 6) return "This Week";
+  if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) return "This Month";
+  return "Older";
+}
+
 export default function MemoryPage() {
   const [files, setFiles] = useState<string[]>([]);
   const [selected, setSelected] = useState<string>("");
@@ -68,6 +94,21 @@ export default function MemoryPage() {
     () => files.filter((f) => /^memory\/\d{4}-\d{2}-\d{2}\.md$/.test(f)).sort().reverse(),
     [files]
   );
+  const groupedJournals = useMemo(() => {
+    const groups: Record<string, string[]> = {
+      "Yesterday (1)": [],
+      "This Week": [],
+      "This Month": [],
+      "Older": [],
+    };
+
+    for (const f of journals) {
+      const key = groupLabel(f);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(f);
+    }
+    return groups;
+  }, [journals]);
 
   return (
     <AppShell active="memory" title="メモリー">
@@ -105,25 +146,34 @@ export default function MemoryPage() {
           )}
 
           <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>DAILY JOURNAL</div>
-          <div style={{ display: "grid", gap: 6, maxHeight: "65vh", overflow: "auto" }}>
-            {journals.map((f) => (
-              <button
-                key={f}
-                onClick={() => loadFile(f)}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  border: selected === f ? "1px solid #475569" : "1px solid #1f2937",
-                  background: selected === f ? "#1f2937" : "#0f172a",
-                  color: "#e5e7eb",
-                  borderRadius: 10,
-                  padding: 8,
-                }}
-              >
-                <div style={{ fontSize: 13 }}>{prettyFileName(f)}</div>
-                <div style={{ fontSize: 11, opacity: 0.65 }}>{f}</div>
-              </button>
-            ))}
+          <div style={{ display: "grid", gap: 10, maxHeight: "65vh", overflow: "auto" }}>
+            {Object.entries(groupedJournals).map(([label, list]) =>
+              list.length === 0 ? null : (
+                <div key={label}>
+                  <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 6 }}>{label} ({list.length})</div>
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {list.map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => loadFile(f)}
+                        style={{
+                          width: "100%",
+                          textAlign: "left",
+                          border: selected === f ? "1px solid #475569" : "1px solid #1f2937",
+                          background: selected === f ? "#1f2937" : "#0f172a",
+                          color: "#e5e7eb",
+                          borderRadius: 10,
+                          padding: 8,
+                        }}
+                      >
+                        <div style={{ fontSize: 13 }}>{prettyFileName(f)}</div>
+                        <div style={{ fontSize: 11, opacity: 0.65 }}>{f}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )
+            )}
           </div>
         </section>
 
