@@ -60,12 +60,12 @@ export default function TeamPage() {
     return cand;
   };
 
-  const chief = take(findBy(["chief", "staff", "manager", "lead"])) || take(ordered[0]);
-  const scout = take(findBy(["scout", "analyst", "research"]));
-  const quill = take(findBy(["quill", "writer", "content"]));
-  const pixel = take(findBy(["pixel", "design", "thumbnail"]));
-  const echo = take(findBy(["echo", "social", "media"]));
-  const codex = take(findBy(["codex", "engineer", "developer", "dev"]));
+  const chief = take(findBy(["chief", "staff", "manager", "lead", "統括", "責任者", "マネージャー"])) || take(ordered[0]);
+  const scout = take(findBy(["scout", "analyst", "research", "調査", "リサーチ", "分析"]));
+  const quill = take(findBy(["quill", "writer", "content", "ライター", "記事", "執筆", "コンテンツ"]));
+  const pixel = take(findBy(["pixel", "design", "thumbnail", "デザイン", "サムネ", "画像"]));
+  const echo = take(findBy(["echo", "social", "media", "sns", "ソーシャル", "投稿運用"]));
+  const codex = take(findBy(["codex", "engineer", "developer", "dev", "開発", "エンジニア"]));
 
   const core = [scout, quill, pixel, echo].filter(Boolean) as typeof ordered;
   const meta = (codex ? [codex] : []).concat(ordered.filter((m) => !usedIds.has(m._id)).slice(0, 1)) as typeof ordered;
@@ -83,7 +83,10 @@ export default function TeamPage() {
   return (
     <AppShell active="team" title="Meet the Team">
       <div style={{ textAlign: "center", marginBottom: 20, opacity: 0.9 }}>
-        <div>{ordered.length} agents, each with a clear role and responsibility.</div>
+        <div>{ordered.length} 名のメンバー（役割ごとに自動配置）</div>
+        <div style={{ fontSize: 12, marginTop: 6, opacity: 0.75 }}>
+          割り当て枠: 調査担当 / 執筆担当 / デザイン担当 / SNS担当 / 開発担当
+        </div>
       </div>
 
       {chief && (
@@ -100,10 +103,10 @@ export default function TeamPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 28, height: 28, borderRadius: 8, background: "#334155" }} />
             <div style={{ fontWeight: 700, fontSize: 18 }}>{chief.name}</div>
-            <span style={{ marginLeft: "auto", fontSize: 12, opacity: 0.8 }}>ROLE CARD →</span>
+            <span style={{ marginLeft: "auto", fontSize: 12, opacity: 0.8 }}>役割カード →</span>
           </div>
           <div style={{ opacity: 0.85, marginTop: 2 }}>{chief.role}</div>
-          <div style={{ marginTop: 6, opacity: 0.75, fontSize: 13 }}>{chief.focus || "Coordinates team execution and priorities."}</div>
+          <div style={{ marginTop: 6, opacity: 0.75, fontSize: 13 }}>{chief.focus || "チーム全体の優先順位と進行を統括。"}</div>
           <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
             {tagsFromKeywords(chief.ownsKeywords).map((t) => (
               <span key={t} style={{ fontSize: 11, padding: "2px 6px", borderRadius: 999, background: "#1e3a8a" }}>{t}</span>
@@ -112,13 +115,15 @@ export default function TeamPage() {
         </section>
       )}
 
-      <div style={{ textAlign: "center", fontSize: 12, opacity: 0.75, marginBottom: 10 }}>INPUT SIGNAL ───────── OUTPUT ACTION</div>
+      <div style={{ textAlign: "center", fontSize: 12, opacity: 0.75, marginBottom: 10 }}>入力シグナル ───────── 出力アクション</div>
 
       <section style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginBottom: 18 }}>
-        {core.map((m) => {
+        {core.map((m, idx) => {
           const c = cardColor(m.role);
+          const slotName = ["調査担当", "執筆担当", "デザイン担当", "SNS担当"][idx] ?? "担当";
           return (
             <article key={m._id} style={{ border: `1px solid ${c.border}`, background: c.bg, borderRadius: 12, padding: 12 }}>
+              <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 6 }}>{slotName}</div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{ width: 22, height: 22, borderRadius: 6, background: c.border }} />
                 <strong>{m.name}</strong>
@@ -131,7 +136,7 @@ export default function TeamPage() {
                   <span key={t} style={{ fontSize: 11, padding: "2px 6px", borderRadius: 999, border: `1px solid ${c.border}` }}>{t}</span>
                 ))}
               </div>
-              <div style={{ marginTop: 10, fontSize: 11, opacity: 0.7 }}>ROLE CARD →</div>
+              <div style={{ marginTop: 10, fontSize: 11, opacity: 0.7 }}>役割カード →</div>
             </article>
           );
         })}
