@@ -28,6 +28,18 @@ export default function CalendarPage() {
       .sort((a, b) => (a.nextRunAtMs ?? 0) - (b.nextRunAtMs ?? 0));
   }, [events]);
 
+  const todaySchedule = useMemo(() => {
+    const now = new Date();
+    const y = now.getUTCFullYear();
+    const m = now.getUTCMonth();
+    const d = now.getUTCDate();
+    const start = Date.UTC(y, m, d, 0, 0, 0);
+    const end = Date.UTC(y, m, d, 23, 59, 59);
+    return events
+      .filter((e) => e.nextRunAtMs && e.nextRunAtMs >= start && e.nextRunAtMs <= end)
+      .sort((a, b) => (a.nextRunAtMs ?? 0) - (b.nextRunAtMs ?? 0));
+  }, [events]);
+
   const syncFromOpenClaw = async () => {
     try {
       const res = await fetch("/api/openclaw/cron");
@@ -81,6 +93,21 @@ export default function CalendarPage() {
       </button>
 
       {syncMessage && <div style={{ marginBottom: 12, opacity: 0.9 }}>{syncMessage}</div>}
+
+      <section style={{ border: "1px solid #666", borderRadius: 8, padding: 12, marginBottom: 20 }}>
+        <h2 style={{ marginTop: 0 }}>今日の予定（UTC基準）</h2>
+        {todaySchedule.length === 0 ? (
+          <div style={{ fontSize: 14, opacity: 0.8 }}>今日の予定はありません。</div>
+        ) : (
+          <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
+            {todaySchedule.map((e) => (
+              <li key={`today-${e._id}`}>
+                <strong>{e.title}</strong> / {fmt(e.nextRunAtMs)}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section style={{ border: "1px solid #666", borderRadius: 8, padding: 12, marginBottom: 20 }}>
         <h2 style={{ marginTop: 0 }}>今後24時間の予定</h2>

@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+type Hit = { file: string; line: number; text: string };
+
 export default function MemoryPage() {
   const [files, setFiles] = useState<string[]>([]);
   const [selected, setSelected] = useState<string>("");
   const [content, setContent] = useState<string>("");
   const [status, setStatus] = useState<string>("");
+  const [query, setQuery] = useState("");
+  const [hits, setHits] = useState<Hit[]>([]);
 
   const loadList = async () => {
     setStatus("読み込み中...");
@@ -35,6 +39,23 @@ export default function MemoryPage() {
     setStatus("");
   };
 
+  const search = async () => {
+    const q = query.trim();
+    if (!q) {
+      setHits([]);
+      return;
+    }
+    setStatus("検索中...");
+    const res = await fetch(`/api/memory/search?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    if (!data?.ok) {
+      setStatus("検索失敗");
+      return;
+    }
+    setHits((data.hits ?? []) as Hit[]);
+    setStatus("");
+  };
+
   useEffect(() => {
     loadList();
   }, []);
@@ -51,6 +72,35 @@ export default function MemoryPage() {
       <h1>Mission Control - Memory</h1>
       {status && <div style={{ marginBottom: 10, opacity: 0.8 }}>{status}</div>}
 
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") search();
+          }}
+          placeholder="キーワード検索（例: TikTok, 2XKO, モーニング）"
+          style={{ flex: 1, padding: 8 }}
+        />
+        <button onClick={search}>検索</button>
+      </div>
+
+      {hits.length > 0 && (
+        <section style={{ border: "1px solid #ddd", borderRadius: 8, padding: 10, marginBottom: 12 }}>
+          <strong>検索結果</strong>
+          <ul style={{ margin: "8px 0 0 0", paddingLeft: 18, display: "grid", gap: 6 }}>
+            {hits.map((h, idx) => (
+              <li key={`${h.file}-${h.line}-${idx}`}>
+                <button onClick={() => loadFile(h.file)} style={{ marginRight: 6 }}>
+                  {h.file}#{h.line}
+                </button>
+                {h.text || "(空行)"}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 12 }}>
         <section style={{ border: "1px solid #ddd", borderRadius: 8, padding: 10 }}>
           <div style={{ marginBottom: 8 }}>
@@ -59,10 +109,7 @@ export default function MemoryPage() {
           <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
             {files.map((f) => (
               <li key={f}>
-                <button
-                  onClick={() => loadFile(f)}
-                  style={{ textDecoration: selected === f ? "underline" : "none" }}
-                >
+                <button onClick={() => loadFile(f)} style={{ textDecoration: selected === f ? "underline" : "none" }}>
                   {f}
                 </button>
               </li>
