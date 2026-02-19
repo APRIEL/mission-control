@@ -46,9 +46,29 @@ export default function TeamPage() {
   const [ownsKeywords, setOwnsKeywords] = useState("");
 
   const ordered = useMemo(() => [...members].sort((a, b) => a.createdAt - b.createdAt), [members]);
-  const chief = ordered[0];
-  const core = ordered.slice(1, 5);
-  const meta = ordered.slice(5, 6);
+
+  const findBy = (keys: string[]) =>
+    ordered.find((m) => {
+      const s = `${m.name} ${m.role} ${m.ownsKeywords || ""}`.toLowerCase();
+      return keys.some((k) => s.includes(k));
+    });
+
+  const usedIds = new Set<string>();
+  const take = (cand: any) => {
+    if (!cand) return undefined;
+    usedIds.add(cand._id);
+    return cand;
+  };
+
+  const chief = take(findBy(["chief", "staff", "manager", "lead"])) || take(ordered[0]);
+  const scout = take(findBy(["scout", "analyst", "research"]));
+  const quill = take(findBy(["quill", "writer", "content"]));
+  const pixel = take(findBy(["pixel", "design", "thumbnail"]));
+  const echo = take(findBy(["echo", "social", "media"]));
+  const codex = take(findBy(["codex", "engineer", "developer", "dev"]));
+
+  const core = [scout, quill, pixel, echo].filter(Boolean) as typeof ordered;
+  const meta = (codex ? [codex] : []).concat(ordered.filter((m) => !usedIds.has(m._id)).slice(0, 1)) as typeof ordered;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
