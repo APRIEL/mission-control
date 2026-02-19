@@ -138,16 +138,37 @@ export default function PipelinePage() {
             {readyQueue.map((i) => (
               <li key={`ready-${i._id}`}>
                 <strong>{i.title}</strong>（{platformLabel(i.platform)}）
-                <button
-                  style={{ marginLeft: 8, fontSize: 12, padding: "2px 8px" }}
-                  onClick={async () => {
-                    const url = window.prompt("公開済みの記事URLを貼ってください（保存で自動POSTED化）", i.publishedUrl ?? "");
-                    if (url === null) return;
-                    await updatePublishMeta({ id: i._id, publishedUrl: url.trim() || undefined });
-                  }}
-                >
-                  記事URL保存→投稿完了
-                </button>
+                {i.platform === "2xko" ? (
+                  <button
+                    style={{ marginLeft: 8, fontSize: 12, padding: "2px 8px" }}
+                    onClick={async () => {
+                      const res = await fetch("/api/publish/latest-2xko");
+                      const data = await res.json();
+                      if (!data?.ok || !data?.url) {
+                        setSyncMessage("2XKO公開URLの自動取得に失敗しました。手動入力してください。");
+                        const manual = window.prompt("公開済みの記事URLを貼ってください", i.publishedUrl ?? "");
+                        if (manual === null) return;
+                        await updatePublishMeta({ id: i._id, publishedUrl: manual.trim() || undefined });
+                        return;
+                      }
+                      await updatePublishMeta({ id: i._id, publishedUrl: data.url });
+                      setSyncMessage("2XKO公開URLを自動反映してPOSTED化しました。");
+                    }}
+                  >
+                    最新記事URLで投稿完了（自動）
+                  </button>
+                ) : (
+                  <button
+                    style={{ marginLeft: 8, fontSize: 12, padding: "2px 8px" }}
+                    onClick={async () => {
+                      const url = window.prompt("公開済みの記事URLを貼ってください（保存で自動POSTED化）", i.publishedUrl ?? "");
+                      if (url === null) return;
+                      await updatePublishMeta({ id: i._id, publishedUrl: url.trim() || undefined });
+                    }}
+                  >
+                    記事URL保存→投稿完了
+                  </button>
+                )}
                 {i.publishedUrl && (
                   <a href={i.publishedUrl} target="_blank" rel="noreferrer" style={{ marginLeft: 8, fontSize: 12 }}>
                     記事を開く
