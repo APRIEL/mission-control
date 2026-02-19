@@ -30,13 +30,19 @@ export default function CalendarPage() {
 
   const todaySchedule = useMemo(() => {
     const now = new Date();
-    const y = now.getUTCFullYear();
-    const m = now.getUTCMonth();
-    const d = now.getUTCDate();
-    const start = Date.UTC(y, m, d, 0, 0, 0);
-    const end = Date.UTC(y, m, d, 23, 59, 59);
+    const nowJst = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+    const y = nowJst.getFullYear();
+    const m = nowJst.getMonth();
+    const d = nowJst.getDate();
+
+    const startJst = new Date(y, m, d, 0, 0, 0);
+    const endJst = new Date(y, m, d, 23, 59, 59);
+
+    const startUtcMs = startJst.getTime() - 9 * 60 * 60 * 1000;
+    const endUtcMs = endJst.getTime() - 9 * 60 * 60 * 1000;
+
     return events
-      .filter((e) => e.nextRunAtMs && e.nextRunAtMs >= start && e.nextRunAtMs <= end)
+      .filter((e) => e.nextRunAtMs && e.nextRunAtMs >= startUtcMs && e.nextRunAtMs <= endUtcMs)
       .sort((a, b) => (a.nextRunAtMs ?? 0) - (b.nextRunAtMs ?? 0));
   }, [events]);
 
@@ -95,7 +101,7 @@ export default function CalendarPage() {
       {syncMessage && <div style={{ marginBottom: 12, opacity: 0.9 }}>{syncMessage}</div>}
 
       <section style={{ border: "1px solid #666", borderRadius: 8, padding: 12, marginBottom: 20 }}>
-        <h2 style={{ marginTop: 0 }}>今日の予定（UTC基準）</h2>
+        <h2 style={{ marginTop: 0 }}>今日の予定（JST基準）</h2>
         {todaySchedule.length === 0 ? (
           <div style={{ fontSize: 14, opacity: 0.8 }}>今日の予定はありません。</div>
         ) : (
