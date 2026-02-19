@@ -115,6 +115,7 @@ export default function CalendarPage() {
   const events = useQuery(api.events.list) ?? [];
   const createEvent = useMutation(api.events.create);
   const upsertFromCron = useMutation(api.events.upsertFromCron);
+  const addActivity = useMutation(api.activities.add);
 
   const [title, setTitle] = useState("");
   const [schedule, setSchedule] = useState("");
@@ -163,9 +164,12 @@ export default function CalendarPage() {
         nextRunAtMs: j.nextRunAtMs ?? null,
       }));
       await upsertFromCron({ items });
+      await addActivity({ type: "calendar", message: "cron同期完了", detail: `${items.length}件`, level: "info" });
       setSyncMessage(`cron自動同期完了: ${items.length}件`);
     } catch (e: any) {
-      setSyncMessage("cron取得失敗: " + (e?.message ?? "unknown"));
+      const msg = e?.message ?? "unknown";
+      await addActivity({ type: "calendar", message: "cron同期失敗", detail: msg, level: "warn" });
+      setSyncMessage("cron取得失敗: " + msg);
     }
   };
 
@@ -179,6 +183,7 @@ export default function CalendarPage() {
     e.preventDefault();
     if (!title.trim() || !schedule.trim()) return;
     await createEvent({ title: title.trim(), schedule: schedule.trim(), source: "manual" });
+    await addActivity({ type: "calendar", message: "手動イベント追加", detail: `${title.trim()} / ${schedule.trim()}`, level: "info" });
     setTitle("");
     setSchedule("");
   };
