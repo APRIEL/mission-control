@@ -19,9 +19,41 @@ function statusColor(status: string) {
   return "#94a3b8";
 }
 
-function PixelAgent({ color, name, subtitle }: { color: string; name: string; subtitle: string }) {
+function PixelAgent({
+  color,
+  name,
+  subtitle,
+  speech,
+}: {
+  color: string;
+  name: string;
+  subtitle: string;
+  speech?: string;
+}) {
   return (
-    <div style={{ textAlign: "center" }}>
+    <div style={{ textAlign: "center", position: "relative", minWidth: 120 }}>
+      {speech && (
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: -34,
+            transform: "translateX(-50%)",
+            background: "rgba(15,23,42,0.95)",
+            border: "1px solid #334155",
+            borderRadius: 8,
+            padding: "4px 8px",
+            fontSize: 11,
+            maxWidth: 160,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+          title={speech}
+        >
+          {speech}
+        </div>
+      )}
       <div style={{ position: "relative", width: 28, height: 28, margin: "0 auto 4px auto" }}>
         <div
           style={{
@@ -169,7 +201,12 @@ export default function OfficePage() {
                 }}
                 title={`${m.name} (${m.status})`}
               >
-                <PixelAgent color={statusColor(m.status)} name={m.name} subtitle={m.focus || m.role} />
+                <PixelAgent
+                  color={statusColor(m.status)}
+                  name={m.name}
+                  subtitle={m.focus || m.role}
+                  speech={m.status === "working" ? m.focus || "working..." : undefined}
+                />
               </div>
             );
           })}
