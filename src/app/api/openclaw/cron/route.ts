@@ -10,9 +10,7 @@ function extractJson(raw: string) {
     Math.min(startArr, startObj);
 
   if (start === -1) throw new Error("JSON開始位置を検出できません");
-
-  const sliced = raw.slice(start).trim();
-  return JSON.parse(sliced);
+  return JSON.parse(raw.slice(start).trim());
 }
 
 export async function GET() {
@@ -24,7 +22,18 @@ export async function GET() {
     });
     const parsed = extractJson(raw);
     const jobs = Array.isArray(parsed) ? parsed : (parsed.jobs ?? []);
-    return NextResponse.json({ ok: true, jobs });
+
+    const normalized = jobs.map((j: any) => ({
+      name: j.name ?? "(no-name)",
+      schedule:
+        j.schedule?.kind === "cron"
+          ? `${j.schedule.expr} (${j.schedule.tz ?? "UTC"})`
+          : JSON.stringify(j.schedule),
+      enabled: !!j.enabled,
+      nextRunAtMs: j.state?.nextRunAtMs ?? null,
+      source: "openclaw-cron",
+    }));
+    return NextResponse.json({ ok: true, jobs: normalized });
   } catch (e: any) {
     return NextResponse.json(
       { ok: false, error: e?.message ?? "failed to fetch cron list" },

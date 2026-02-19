@@ -24,31 +24,14 @@ export const create = mutation({
   },
 });
 
-export const seedIfEmpty = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const rows = await ctx.db.query("events").collect();
-    if (rows.length > 0) return;
-
-    const seed = [
-      { title: "2XKO日次下書き", schedule: "毎日 09:00 JST", source: "openclaw-cron" as const },
-      { title: "TikTok日次投稿パック", schedule: "毎日 09:00 JST", source: "openclaw-cron" as const },
-      { title: "AI収益化ニュース収集", schedule: "毎時 00分 JST", source: "openclaw-cron" as const },
-      { title: "モーニングブリーフィング", schedule: "毎日 09:00 JST", source: "openclaw-cron" as const },
-    ];
-
-    for (const e of seed) {
-      await ctx.db.insert("events", { ...e, createdAt: Date.now() });
-    }
-  },
-});
-
 export const upsertFromCron = mutation({
   args: {
     items: v.array(
       v.object({
         title: v.string(),
         schedule: v.string(),
+        enabled: v.boolean(),
+        nextRunAtMs: v.union(v.number(), v.null()),
       })
     ),
   },
@@ -59,7 +42,6 @@ export const upsertFromCron = mutation({
         .filter((q) =>
           q.and(
             q.eq(q.field("title"), item.title),
-            q.eq(q.field("schedule"), item.schedule),
             q.eq(q.field("source"), "openclaw-cron")
           )
         )
@@ -70,7 +52,15 @@ export const upsertFromCron = mutation({
           title: item.title,
           schedule: item.schedule,
           source: "openclaw-cron",
+          enabled: item.enabled,
+          nextRunAtMs: item.nextRunAtMs === null ? undefined : item.nextRunAtMs,
           createdAt: Date.now(),
+        });
+      } else {
+        await ctx.db.patch(exists._id, {
+          schedule: item.schedule,
+          enabled: item.enabled,
+          nextRunAtMs: item.nextRunAtMs === null ? undefined : item.nextRunAtMs,
         });
       }
     }

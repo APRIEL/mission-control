@@ -10,8 +10,10 @@ export default defineSchema({
   }),
   events: defineTable({
     title: v.string(),
-    schedule: v.string(), // 例: 毎日 09:00 JST
+    schedule: v.string(),
     source: v.union(v.literal("manual"), v.literal("openclaw-cron")),
+    enabled: v.optional(v.boolean()),
+    nextRunAtMs: v.optional(v.number()),
     createdAt: v.number(),
   }),
 });
