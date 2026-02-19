@@ -119,6 +119,7 @@ export default function CalendarPage() {
   const [title, setTitle] = useState("");
   const [schedule, setSchedule] = useState("");
   const [syncMessage, setSyncMessage] = useState("");
+  const [mode, setMode] = useState<"week" | "today">("week");
   const didAutoSync = useRef(false);
 
   const upcoming24h = useMemo(() => {
@@ -141,6 +142,13 @@ export default function CalendarPage() {
     for (let d = 0; d < 7; d++) map[d].sort((a, b) => a.timeLabel.localeCompare(b.timeLabel));
     return map;
   }, [weekItems]);
+
+  const todayDay = useMemo(() => {
+    const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+    return d.getDay();
+  }, []);
+
+  const todayBoardItems = useMemo(() => groupedByDay[todayDay] ?? [], [groupedByDay, todayDay]);
 
   const syncFromOpenClaw = async () => {
     try {
@@ -179,6 +187,21 @@ export default function CalendarPage() {
     <AppShell active="calendar" title="Scheduled Tasks">
       {syncMessage && <div style={{ marginBottom: 10, opacity: 0.85 }}>{syncMessage}</div>}
 
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 10 }}>
+        <button
+          onClick={() => setMode("week")}
+          style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #334155", background: mode === "week" ? "#1f2937" : "#0f172a" }}
+        >
+          Week
+        </button>
+        <button
+          onClick={() => setMode("today")}
+          style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #334155", background: mode === "today" ? "#1f2937" : "#0f172a" }}
+        >
+          Today
+        </button>
+      </div>
+
       <section style={{ border: "1px solid #273244", background: "#101522", borderRadius: 10, padding: 12, marginBottom: 14 }}>
         <div style={{ fontWeight: 700, marginBottom: 8 }}>⚡ Always Running</div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -194,21 +217,39 @@ export default function CalendarPage() {
         </div>
       </section>
 
-      <section style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0,1fr))", gap: 8, marginBottom: 14 }}>
-        {DAY_LABELS.map((label, d) => (
-          <div key={label} style={{ border: "1px solid #273244", borderRadius: 10, background: d === 3 ? "#101a33" : "#101522", minHeight: 250, padding: 8 }}>
-            <div style={{ fontWeight: 700, marginBottom: 6, opacity: 0.9 }}>{label}</div>
-            <div style={{ display: "grid", gap: 6 }}>
-              {groupedByDay[d].slice(0, 6).map((it) => (
-                <div key={it.id} style={{ border: "1px solid #334155", borderLeft: `4px solid ${it.color}`, background: "#1b2130", borderRadius: 8, padding: 6 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700 }}>{it.title}</div>
-                  <div style={{ fontSize: 11, opacity: 0.75 }}>{it.timeLabel}</div>
-                </div>
-              ))}
+      {mode === "week" ? (
+        <section style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0,1fr))", gap: 8, marginBottom: 14 }}>
+          {DAY_LABELS.map((label, d) => (
+            <div key={label} style={{ border: "1px solid #273244", borderRadius: 10, background: d === todayDay ? "#101a33" : "#101522", minHeight: 250, padding: 8 }}>
+              <div style={{ fontWeight: 700, marginBottom: 6, opacity: 0.9 }}>{label}</div>
+              <div style={{ display: "grid", gap: 6 }}>
+                {groupedByDay[d].slice(0, 6).map((it) => (
+                  <div key={it.id} style={{ border: "1px solid #334155", borderLeft: `4px solid ${it.color}`, background: "#1b2130", borderRadius: 8, padding: 6 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700 }}>{it.title}</div>
+                    <div style={{ fontSize: 11, opacity: 0.75 }}>{it.timeLabel}</div>
+                  </div>
+                ))}
+              </div>
             </div>
+          ))}
+        </section>
+      ) : (
+        <section style={{ border: "1px solid #273244", borderRadius: 10, background: "#101522", padding: 10, marginBottom: 14 }}>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>Today ({DAY_LABELS[todayDay]})</div>
+          <div style={{ display: "grid", gap: 6 }}>
+            {todayBoardItems.length === 0 ? (
+              <div style={{ opacity: 0.75 }}>今日の予定はありません。</div>
+            ) : (
+              todayBoardItems.map((it) => (
+                <div key={it.id} style={{ border: "1px solid #334155", borderLeft: `4px solid ${it.color}`, background: "#1b2130", borderRadius: 8, padding: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>{it.title}</div>
+                  <div style={{ fontSize: 12, opacity: 0.75 }}>{it.timeLabel}</div>
+                </div>
+              ))
+            )}
           </div>
-        ))}
-      </section>
+        </section>
+      )}
 
       <section style={{ border: "1px solid #273244", background: "#101522", borderRadius: 10, padding: 12, marginBottom: 16 }}>
         <div style={{ fontWeight: 700, marginBottom: 8 }}>📅 Next Up</div>
