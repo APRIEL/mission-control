@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
@@ -19,6 +19,14 @@ export default function CalendarPage() {
   const [schedule, setSchedule] = useState("");
   const [syncMessage, setSyncMessage] = useState("");
   const didAutoSync = useRef(false);
+
+  const upcoming24h = useMemo(() => {
+    const now = Date.now();
+    const until = now + 24 * 60 * 60 * 1000;
+    return events
+      .filter((e) => e.nextRunAtMs && e.nextRunAtMs >= now && e.nextRunAtMs <= until)
+      .sort((a, b) => (a.nextRunAtMs ?? 0) - (b.nextRunAtMs ?? 0));
+  }, [events]);
 
   const syncFromOpenClaw = async () => {
     try {
@@ -42,6 +50,7 @@ export default function CalendarPage() {
       setSyncMessage("cron取得失敗: " + (e?.message ?? "unknown"));
     }
   };
+
   useEffect(() => {
     if (didAutoSync.current) return;
     didAutoSync.current = true;
@@ -55,12 +64,14 @@ export default function CalendarPage() {
     setTitle("");
     setSchedule("");
   };
+
   return (
     <main style={{ maxWidth: 980, margin: "40px auto", fontFamily: "sans-serif" }}>
       <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
         <Link href="/">Tasks</Link>
         <strong>Calendar</strong>
         <Link href="/pipeline">Pipeline</Link>
+        <Link href="/memory">Memory</Link>
       </div>
 
       <h1>Mission Control - Calendar</h1>
@@ -70,6 +81,22 @@ export default function CalendarPage() {
       </button>
 
       {syncMessage && <div style={{ marginBottom: 12, opacity: 0.9 }}>{syncMessage}</div>}
+
+      <section style={{ border: "1px solid #666", borderRadius: 8, padding: 12, marginBottom: 20 }}>
+        <h2 style={{ marginTop: 0 }}>今後24時間の予定</h2>
+        {upcoming24h.length === 0 ? (
+          <div style={{ fontSize: 14, opacity: 0.8 }}>24時間以内の予定はありません。</div>
+        ) : (
+          <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
+            {upcoming24h.map((e) => (
+              <li key={`up-${e._id}`}>
+                <strong>{e.title}</strong> / {fmt(e.nextRunAtMs)}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <form onSubmit={onSubmit} style={{ display: "flex", gap: 8, marginBottom: 20 }}>
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="イベント名" style={{ flex: 1, padding: 8 }} />
         <input value={schedule} onChange={(e) => setSchedule(e.target.value)} placeholder="スケジュール" style={{ flex: 1, padding: 8 }} />
@@ -83,24 +110,22 @@ export default function CalendarPage() {
             <li key={e._id} style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                 <strong>{e.title}</strong>
-                <span style={{
-                  fontSize: 12,
-                  padding: "2px 8px",
-                  borderRadius: 999,
-                  background: cron ? "#e8f0ff" : "#f3f3f3"
-                }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    background: cron ? "#e8f0ff" : "#f3f3f3",
+                  }}
+                >
                   {e.source}
                 </span>
               </div>
-              <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>
-                schedule: {e.schedule}
-              </div>
+              <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>schedule: {e.schedule}</div>
               <div style={{ fontSize: 13, opacity: 0.9 }}>
                 enabled: {e.enabled === undefined ? "-" : e.enabled ? "true" : "false"}
               </div>
-              <div style={{ fontSize: 13, opacity: 0.9 }}>
-                next run (JST): {fmt(e.nextRunAtMs)}
-              </div>
+              <div style={{ fontSize: 13, opacity: 0.9 }}>next run (JST): {fmt(e.nextRunAtMs)}</div>
             </li>
           );
         })}
