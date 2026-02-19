@@ -32,10 +32,10 @@ function groupLabel(file: string, now = new Date()) {
   const target = startOfDay(d);
   const diffDays = Math.floor((today.getTime() - target.getTime()) / 86400000);
 
-  if (diffDays === 1) return "Yesterday (1)";
-  if (diffDays >= 0 && diffDays <= 6) return "This Week";
-  if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) return "This Month";
-  return "Older";
+  if (diffDays === 1) return "昨日";
+  if (diffDays >= 0 && diffDays <= 6) return "今週";
+  if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) return "今月";
+  return "過去";
 }
 
 export default function MemoryPage() {
@@ -96,10 +96,10 @@ export default function MemoryPage() {
   );
   const groupedJournals = useMemo(() => {
     const groups: Record<string, string[]> = {
-      "Yesterday (1)": [],
-      "This Week": [],
-      "This Month": [],
-      "Older": [],
+      "昨日": [],
+      "今週": [],
+      "今月": [],
+      "過去": [],
     };
 
     for (const f of journals) {
