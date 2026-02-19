@@ -13,7 +13,7 @@ type WeekItem = {
   color: string;
 };
 
-const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 
 function fmt(ms?: number) {
   if (!ms) return "-";
@@ -39,13 +39,13 @@ function dayOfWeekJst(ms?: number) {
 function relFromNow(ms?: number) {
   if (!ms) return "-";
   const diff = ms - Date.now();
-  if (diff <= 0) return "now";
+  if (diff <= 0) return "今";
   const min = Math.round(diff / 60000);
-  if (min < 60) return `in ${min} min`;
+  if (min < 60) return `${min}分後`;
   const h = Math.round(min / 60);
-  if (h < 24) return `in ${h} hours`;
+  if (h < 24) return `${h}時間後`;
   const d = Math.round(h / 24);
-  return `in ${d} days`;
+  return `${d}日後`;
 }
 
 function extractCronExpr(schedule: string) {
@@ -184,7 +184,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <AppShell active="calendar" title="Scheduled Tasks">
+    <AppShell active="calendar" title="スケジュールタスク">
       {syncMessage && <div style={{ marginBottom: 10, opacity: 0.85 }}>{syncMessage}</div>}
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 10 }}>
@@ -192,21 +192,21 @@ export default function CalendarPage() {
           onClick={() => setMode("week")}
           style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #334155", background: mode === "week" ? "#1f2937" : "#0f172a" }}
         >
-          Week
+          週表示
         </button>
         <button
           onClick={() => setMode("today")}
           style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #334155", background: mode === "today" ? "#1f2937" : "#0f172a" }}
         >
-          Today
+          今日
         </button>
       </div>
 
       <section style={{ border: "1px solid #273244", background: "#101522", borderRadius: 10, padding: 12, marginBottom: 14 }}>
-        <div style={{ fontWeight: 700, marginBottom: 8 }}>⚡ Always Running</div>
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>⚡ 常時実行</div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {alwaysRunning.length === 0 ? (
-            <span style={{ opacity: 0.75 }}>none</span>
+            <span style={{ opacity: 0.75 }}>なし</span>
           ) : (
             alwaysRunning.slice(0, 8).map((e) => (
               <span key={e._id} style={{ background: "#1e3a8a", border: "1px solid #3b82f6", borderRadius: 999, fontSize: 12, padding: "4px 10px" }}>
@@ -235,7 +235,7 @@ export default function CalendarPage() {
         </section>
       ) : (
         <section style={{ border: "1px solid #273244", borderRadius: 10, background: "#101522", padding: 10, marginBottom: 14 }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>Today ({DAY_LABELS[todayDay]})</div>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>今日（{DAY_LABELS[todayDay]}）</div>
           <div style={{ display: "grid", gap: 6 }}>
             {todayBoardItems.length === 0 ? (
               <div style={{ opacity: 0.75 }}>今日の予定はありません。</div>
@@ -252,7 +252,7 @@ export default function CalendarPage() {
       )}
 
       <section style={{ border: "1px solid #273244", background: "#101522", borderRadius: 10, padding: 12, marginBottom: 16 }}>
-        <div style={{ fontWeight: 700, marginBottom: 8 }}>📅 Next Up</div>
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>📅 次の予定</div>
         {upcoming24h.length === 0 ? (
           <div style={{ opacity: 0.75 }}>24時間以内の予定はありません。</div>
         ) : (
