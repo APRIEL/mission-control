@@ -13,10 +13,12 @@ export default function TeamPage() {
   const members = useQuery(api.team.list) ?? [];
   const createMember = useMutation(api.team.create);
   const updateStatus = useMutation(api.team.updateStatus);
+  const updateOwnership = useMutation(api.team.updateOwnership);
 
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [focus, setFocus] = useState("");
+  const [ownsKeywords, setOwnsKeywords] = useState("");
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -25,10 +27,12 @@ export default function TeamPage() {
       name: name.trim(),
       role: role.trim(),
       focus: focus.trim() || undefined,
+      ownsKeywords: ownsKeywords.trim() || undefined,
     });
     setName("");
     setRole("");
     setFocus("");
+    setOwnsKeywords("");
   };
 
   return (
@@ -48,6 +52,7 @@ export default function TeamPage() {
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="メンバー名（例: Research Agent）" style={{ padding: 8 }} />
         <input value={role} onChange={(e) => setRole(e.target.value)} placeholder="役割（例: リサーチ）" style={{ padding: 8 }} />
         <input value={focus} onChange={(e) => setFocus(e.target.value)} placeholder="現在フォーカス（任意）" style={{ padding: 8 }} />
+        <input value={ownsKeywords} onChange={(e) => setOwnsKeywords(e.target.value)} placeholder="担当キーワード（カンマ区切り, 例: 2xko,tiktok,briefing）" style={{ padding: 8 }} />
         <button type="submit" style={{ padding: "8px 12px", width: 120 }}>追加</button>
       </form>
 
@@ -58,6 +63,7 @@ export default function TeamPage() {
             <div style={{ fontSize: 13, opacity: 0.85 }}>役割: {m.role}</div>
             <div style={{ fontSize: 13, opacity: 0.85 }}>状態: {m.status}</div>
             <div style={{ fontSize: 13, opacity: 0.85 }}>作業: {m.focus || "-"}</div>
+            <div style={{ fontSize: 13, opacity: 0.85 }}>担当キーワード: {m.ownsKeywords || "-"}</div>
 
             <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
               {STATUSES.map((s) => (
@@ -73,6 +79,15 @@ export default function TeamPage() {
                 }}
               >
                 作業更新
+              </button>
+              <button
+                onClick={async () => {
+                  const next = window.prompt("担当キーワード（カンマ区切り）", m.ownsKeywords ?? "");
+                  if (next === null) return;
+                  await updateOwnership({ id: m._id, ownsKeywords: next.trim() || undefined });
+                }}
+              >
+                担当更新
               </button>
             </div>
           </article>

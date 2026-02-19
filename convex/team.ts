@@ -20,12 +20,14 @@ export const create = mutation({
     name: v.string(),
     role: v.string(),
     focus: v.optional(v.string()),
+    ownsKeywords: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await ctx.db.insert("teamMembers", {
       name: args.name,
       role: args.role,
       focus: args.focus,
+      ownsKeywords: args.ownsKeywords,
       status: "idle",
       createdAt: Date.now(),
     });
@@ -44,5 +46,15 @@ export const updateStatus = mutation({
     };
     if (args.focus !== undefined) patch.focus = args.focus;
     await ctx.db.patch(args.id, patch);
+  },
+});
+
+export const updateOwnership = mutation({
+  args: {
+    id: v.id("teamMembers"),
+    ownsKeywords: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { ownsKeywords: args.ownsKeywords });
   },
 });
