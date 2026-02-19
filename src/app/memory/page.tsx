@@ -1,9 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "../../components/AppShell";
 
 type Hit = { file: string; line: number; text: string };
+
+function prettyFileName(file: string) {
+  if (file === "MEMORY.md") return "長期メモリー";
+  const m = file.match(/^memory\/(\d{4}-\d{2}-\d{2})\.md$/);
+  if (m) return `Journal: ${m[1]}`;
+  return file;
+}
 
 export default function MemoryPage() {
   const [files, setFiles] = useState<string[]>([]);
@@ -18,7 +25,12 @@ export default function MemoryPage() {
     const res = await fetch("/api/memory/list");
     const data = await res.json();
     if (!data?.ok) return setStatus("一覧取得失敗");
-    setFiles(data.files ?? []);
+    const list = (data.files ?? []) as string[];
+    setFiles(list);
+    if (!selected && list.length > 0) {
+      const first = list.includes("MEMORY.md") ? "MEMORY.md" : list[0];
+      loadFile(first);
+    }
     setStatus("");
   };
 
@@ -51,48 +63,93 @@ export default function MemoryPage() {
     loadList();
   }, []);
 
+  const longTerm = useMemo(() => files.find((f) => f === "MEMORY.md"), [files]);
+  const journals = useMemo(
+    () => files.filter((f) => /^memory\/\d{4}-\d{2}-\d{2}\.md$/.test(f)).sort().reverse(),
+    [files]
+  );
+
   return (
-    <AppShell active="memory" title="Memory">
+    <AppShell active="memory" title="メモリー">
       {status && <div style={{ marginBottom: 10, opacity: 0.8 }}>{status}</div>}
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && search()}
-          placeholder="キーワード検索（例: TikTok, 2XKO, モーニング）"
-          style={{ flex: 1, padding: 8 }}
-        />
-        <button onClick={search}>検索</button>
-      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "260px 1fr", gap: 12 }}>
+        <section style={{ border: "1px solid #1f2937", borderRadius: 10, background: "#0b111b", padding: 10 }}>
+          <div style={{ marginBottom: 10 }}>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && search()}
+              placeholder="メモリーを検索..."
+              style={{ width: "100%", padding: 8, borderRadius: 8, border: "1px solid #334155", background: "#111827", color: "#e5e7eb" }}
+            />
+          </div>
 
-      {hits.length > 0 && (
-        <section style={{ border: "1px solid #ddd", borderRadius: 8, padding: 10, marginBottom: 12 }}>
-          <strong>検索結果</strong>
-          <ul style={{ margin: "8px 0 0 0", paddingLeft: 18, display: "grid", gap: 6 }}>
-            {hits.map((h, idx) => (
-              <li key={`${h.file}-${h.line}-${idx}`}>
-                <button onClick={() => loadFile(h.file)} style={{ marginRight: 6 }}>{h.file}#{h.line}</button>
-                {h.text || "(空行)"}
-              </li>
+          {longTerm && (
+            <button
+              onClick={() => loadFile(longTerm)}
+              style={{
+                width: "100%",
+                textAlign: "left",
+                border: selected === longTerm ? "1px solid #7c3aed" : "1px solid #334155",
+                background: selected === longTerm ? "#24143f" : "#111827",
+                color: "#e5e7eb",
+                borderRadius: 10,
+                padding: 10,
+                marginBottom: 12,
+              }}
+            >
+              <div style={{ fontWeight: 700 }}>🧠 長期メモリー</div>
+              <div style={{ fontSize: 12, opacity: 0.7 }}>MEMORY.md</div>
+            </button>
+          )}
+
+          <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>DAILY JOURNAL</div>
+          <div style={{ display: "grid", gap: 6, maxHeight: "65vh", overflow: "auto" }}>
+            {journals.map((f) => (
+              <button
+                key={f}
+                onClick={() => loadFile(f)}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  border: selected === f ? "1px solid #475569" : "1px solid #1f2937",
+                  background: selected === f ? "#1f2937" : "#0f172a",
+                  color: "#e5e7eb",
+                  borderRadius: 10,
+                  padding: 8,
+                }}
+              >
+                <div style={{ fontSize: 13 }}>{prettyFileName(f)}</div>
+                <div style={{ fontSize: 11, opacity: 0.65 }}>{f}</div>
+              </button>
             ))}
-          </ul>
-        </section>
-      )}
-
-      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 12 }}>
-        <section style={{ border: "1px solid #ddd", borderRadius: 8, padding: 10 }}>
-          <div style={{ marginBottom: 8 }}><button onClick={loadList}>一覧更新</button></div>
-          <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
-            {files.map((f) => (
-              <li key={f}><button onClick={() => loadFile(f)} style={{ textDecoration: selected === f ? "underline" : "none" }}>{f}</button></li>
-            ))}
-          </ul>
+          </div>
         </section>
 
-        <section style={{ border: "1px solid #ddd", borderRadius: 8, padding: 10 }}>
-          <div style={{ marginBottom: 8, opacity: 0.8 }}>{selected || "ファイル未選択"}</div>
-          <pre style={{ whiteSpace: "pre-wrap", margin: 0, fontSize: 13 }}>{content}</pre>
+        <section style={{ border: "1px solid #1f2937", borderRadius: 10, background: "#0b111b", overflow: "hidden" }}>
+          <div style={{ padding: "12px 14px", borderBottom: "1px solid #1f2937" }}>
+            <div style={{ fontWeight: 700, fontSize: 20 }}>{selected ? prettyFileName(selected) : "ファイル未選択"}</div>
+            <div style={{ fontSize: 12, opacity: 0.7 }}>{selected || "左の一覧から選択"}</div>
+          </div>
+
+          {hits.length > 0 && (
+            <div style={{ padding: "10px 14px", borderBottom: "1px solid #1f2937", background: "#0f172a" }}>
+              <div style={{ fontWeight: 700, marginBottom: 6 }}>検索結果</div>
+              <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 4 }}>
+                {hits.slice(0, 10).map((h, idx) => (
+                  <li key={`${h.file}-${h.line}-${idx}`}>
+                    <button onClick={() => loadFile(h.file)} style={{ marginRight: 6 }}>{h.file}#{h.line}</button>
+                    <span style={{ opacity: 0.9 }}>{h.text || "(空行)"}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div style={{ padding: 14, maxHeight: "72vh", overflow: "auto" }}>
+            <pre style={{ whiteSpace: "pre-wrap", margin: 0, fontSize: 13, lineHeight: 1.65 }}>{content}</pre>
+          </div>
         </section>
       </div>
     </AppShell>
