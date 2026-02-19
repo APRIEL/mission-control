@@ -7,6 +7,13 @@ import { AppShell } from "../../components/AppShell";
 
 type Hit = { area: string; title: string; sub?: string };
 
+const areaColor: Record<string, string> = {
+  タスク: "#22c55e",
+  パイプライン: "#a78bfa",
+  カレンダー: "#f59e0b",
+  チーム: "#06b6d4",
+};
+
 export default function GlobalSearchPage() {
   const [q, setQ] = useState("");
 
@@ -37,12 +44,12 @@ export default function GlobalSearchPage() {
       if (text.includes(s)) out.push({ area: "チーム", title: m.name, sub: `${m.role}` });
     }
 
-    return out.slice(0, 200);
+    return out.slice(0, 250);
   }, [q, tasks, contents, events, team]);
 
   return (
-    <AppShell active="search" title="グローバル検索">
-      <div style={{ marginBottom: 12, opacity: 0.8 }}>タスク / パイプライン / カレンダー / チームを横断検索します。</div>
+    <AppShell active="search" title="検索">
+      <div style={{ marginBottom: 10, opacity: 0.75, fontSize: 13 }}>Global Search / 横断検索</div>
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
@@ -53,8 +60,11 @@ export default function GlobalSearchPage() {
       {q.trim() && <div style={{ marginBottom: 10, fontSize: 13, opacity: 0.8 }}>{hits.length} 件ヒット</div>}
       <div style={{ display: "grid", gap: 8 }}>
         {hits.map((h, i) => (
-          <article key={`${h.area}-${h.title}-${i}`} style={{ border: "1px solid #334155", borderRadius: 8, padding: 10 }}>
-            <div style={{ fontSize: 12, opacity: 0.75 }}>{h.area}</div>
+          <article key={`${h.area}-${h.title}-${i}`} style={{ border: "1px solid #1f2937", borderRadius: 8, padding: 10, background: "#0f172a" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 999, background: areaColor[h.area] ?? "#94a3b8", display: "inline-block" }} />
+              <div style={{ fontSize: 12, color: areaColor[h.area] ?? "#94a3b8", fontWeight: 700 }}>{h.area}</div>
+            </div>
             <div style={{ fontWeight: 700 }}>{h.title}</div>
             {h.sub && <div style={{ fontSize: 12, opacity: 0.8 }}>{h.sub}</div>}
           </article>
