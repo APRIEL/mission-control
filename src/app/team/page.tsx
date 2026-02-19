@@ -8,14 +8,14 @@ import { AppShell } from "../../components/AppShell";
 const STATUSES = ["idle", "working", "blocked", "offline"] as const;
 type Status = (typeof STATUSES)[number];
 
-function cardColor(role: string) {
-  const r = role.toLowerCase();
-  if (r.includes("chief") || r.includes("staff")) return { border: "#3b82f6", bg: "#151d2e" };
-  if (r.includes("analyst") || r.includes("research")) return { border: "#10b981", bg: "#10231f" };
-  if (r.includes("writer") || r.includes("content")) return { border: "#8b5cf6", bg: "#1e1833" };
-  if (r.includes("design")) return { border: "#ec4899", bg: "#2a1625" };
-  if (r.includes("social")) return { border: "#06b6d4", bg: "#10252b" };
-  return { border: "#f59e0b", bg: "#2a2013" };
+function roleVisual(slot: "chief" | "scout" | "quill" | "pixel" | "echo" | "codex" | "other") {
+  if (slot === "chief") return { border: "#3b82f6", bg: "#151d2e", icon: "👑", chipBg: "#1e3a8a" };
+  if (slot === "scout") return { border: "#10b981", bg: "#10231f", icon: "🔎", chipBg: "#064e3b" };
+  if (slot === "quill") return { border: "#8b5cf6", bg: "#1e1833", icon: "✍️", chipBg: "#4c1d95" };
+  if (slot === "pixel") return { border: "#ec4899", bg: "#2a1625", icon: "🎨", chipBg: "#831843" };
+  if (slot === "echo") return { border: "#06b6d4", bg: "#10252b", icon: "📣", chipBg: "#155e75" };
+  if (slot === "codex") return { border: "#f59e0b", bg: "#2a2013", icon: "💻", chipBg: "#7c2d12" };
+  return { border: "#64748b", bg: "#1f2937", icon: "🧩", chipBg: "#334155" };
 }
 
 function statusDot(status: string) {
@@ -93,8 +93,8 @@ export default function TeamPage() {
       {chief && (
         <section
           style={{
-            border: "1px solid #334155",
-            background: "#151d2e",
+            border: `1px solid ${roleVisual("chief").border}`,
+            background: roleVisual("chief").bg,
             borderRadius: 12,
             padding: 14,
             maxWidth: 760,
@@ -102,15 +102,15 @@ export default function TeamPage() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: "#334155" }} />
+            <div style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${roleVisual("chief").border}`, display: "grid", placeItems: "center" }}>{roleVisual("chief").icon}</div>
             <div style={{ fontWeight: 700, fontSize: 18 }}>{chief.name}</div>
-            <span style={{ marginLeft: "auto", fontSize: 12, opacity: 0.8 }}>役割カード →</span>
+            <span style={{ marginLeft: "auto", fontSize: 12, opacity: 0.8 }}>統括カード →</span>
           </div>
           <div style={{ opacity: 0.85, marginTop: 2 }}>{chief.role}</div>
           <div style={{ marginTop: 6, opacity: 0.75, fontSize: 13 }}>{chief.focus || "チーム全体の優先順位と進行を統括。"}</div>
           <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
             {tagsFromKeywords(chief.ownsKeywords).map((t) => (
-              <span key={t} style={{ fontSize: 11, padding: "2px 6px", borderRadius: 999, background: "#1e3a8a" }}>{t}</span>
+              <span key={t} style={{ fontSize: 11, padding: "2px 6px", borderRadius: 999, background: roleVisual("chief").chipBg }}>{t}</span>
             ))}
           </div>
         </section>
@@ -120,13 +120,14 @@ export default function TeamPage() {
 
       <section style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginBottom: 18 }}>
         {core.map((m, idx) => {
-          const c = cardColor(m.role);
+          const slot = (["scout", "quill", "pixel", "echo"] as const)[idx] ?? "other";
           const slotName = ["調査担当", "執筆担当", "デザイン担当", "SNS担当"][idx] ?? "担当";
+          const c = roleVisual(slot);
           return (
             <article key={m._id} style={{ border: `1px solid ${c.border}`, background: c.bg, borderRadius: 12, padding: 12 }}>
               <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 6 }}>{slotName}</div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 22, height: 22, borderRadius: 6, background: c.border }} />
+                <div style={{ width: 22, height: 22, borderRadius: 6, border: `1px solid ${c.border}`, display: "grid", placeItems: "center" }}>{c.icon}</div>
                 <strong>{m.name}</strong>
                 <span style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: 999, background: statusDot(m.status) }} />
               </div>
@@ -144,11 +145,11 @@ export default function TeamPage() {
       </section>
 
       {meta.map((m) => {
-        const c = cardColor(m.role);
+        const c = roleVisual("codex");
         return (
           <section key={m._id} style={{ border: `1px solid ${c.border}`, background: c.bg, borderRadius: 12, padding: 12, maxWidth: 700, margin: "0 auto 24px auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 22, height: 22, borderRadius: 6, background: c.border }} />
+              <div style={{ width: 22, height: 22, borderRadius: 6, border: `1px solid ${c.border}`, display: "grid", placeItems: "center" }}>{c.icon}</div>
               <strong>{m.name}</strong>
               <span style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: 999, background: statusDot(m.status) }} />
             </div>
