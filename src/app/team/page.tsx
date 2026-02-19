@@ -81,7 +81,7 @@ export default function TeamPage() {
   };
 
   return (
-    <AppShell active="team" title="Meet the Team">
+    <AppShell active="team" title="チーム">
       <div style={{ textAlign: "center", marginBottom: 20, opacity: 0.9 }}>
         <div>{ordered.length} 名のメンバー（役割ごとに自動配置）</div>
         <div style={{ fontSize: 12, marginTop: 6, opacity: 0.75 }}>

@@ -6,12 +6,12 @@ import { useMemo, useState } from "react";
 type Key = "tasks" | "calendar" | "pipeline" | "memory" | "team" | "office";
 
 const NAV: Array<{ key: Key; href: string; label: string; icon: string }> = [
-  { key: "tasks", href: "/", label: "Tasks", icon: "✅" },
-  { key: "pipeline", href: "/pipeline", label: "Content", icon: "🗂️" },
-  { key: "calendar", href: "/calendar", label: "Calendar", icon: "🗓️" },
-  { key: "memory", href: "/memory", label: "Memory", icon: "🧠" },
-  { key: "team", href: "/team", label: "Team", icon: "👥" },
-  { key: "office", href: "/office", label: "Office", icon: "🏢" },
+  { key: "tasks", href: "/", label: "タスク", icon: "✅" },
+  { key: "pipeline", href: "/pipeline", label: "コンテンツ", icon: "🗂️" },
+  { key: "calendar", href: "/calendar", label: "カレンダー", icon: "🗓️" },
+  { key: "memory", href: "/memory", label: "メモリー", icon: "🧠" },
+  { key: "team", href: "/team", label: "チーム", icon: "👥" },
+  { key: "office", href: "/office", label: "オフィス", icon: "🏢" },
 ];
 
 export function AppShell({
@@ -42,7 +42,7 @@ export function AppShell({
   return (
     <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", minHeight: "100vh", background: "#0b0f17", color: "#e5e7eb", fontFamily: "sans-serif" }}>
       <aside style={{ borderRight: "1px solid #1f2937", padding: "16px 12px" }}>
-        <div style={{ fontWeight: 700, marginBottom: 14 }}>Mission Control</div>
+        <div style={{ fontWeight: 700, marginBottom: 14 }}>ミッションコントロール</div>
         <nav style={{ display: "grid", gap: 6, fontSize: 14 }}>
           {filtered.map((n) =>
             n.key === active ? (
@@ -70,13 +70,13 @@ export function AppShell({
               onKeyDown={(e) => {
                 if (e.key === "Enter") runPageSearch(true);
               }}
-              placeholder="Search"
+              placeholder="検索"
               style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #334155", background: "#111827", color: "#e5e7eb", minWidth: 180 }}
             />
-            <button style={{ padding: "6px 10px" }} onClick={() => runPageSearch(true)}>Find</button>
-            <button style={{ padding: "6px 10px" }} onClick={() => runPageSearch(false)}>Prev</button>
-            <button style={{ padding: "6px 10px" }}>Pause</button>
-            <button style={{ padding: "6px 10px" }}>Ping</button>
+            <button style={{ padding: "6px 10px" }} onClick={() => runPageSearch(true)}>次を検索</button>
+            <button style={{ padding: "6px 10px" }} onClick={() => runPageSearch(false)}>前を検索</button>
+            <button style={{ padding: "6px 10px" }}>一時停止</button>
+            <button style={{ padding: "6px 10px" }}>通知</button>
           </div>
         </div>
         {children}
