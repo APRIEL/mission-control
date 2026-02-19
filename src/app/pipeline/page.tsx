@@ -141,24 +141,12 @@ export default function PipelinePage() {
                 <button
                   style={{ marginLeft: 8, fontSize: 12, padding: "2px 8px" }}
                   onClick={async () => {
-                    if (!i.publishedUrl) {
-                      const ok = window.confirm("記事URLが未登録です。先に『記事URL保存』を実行しますか？");
-                      if (!ok) return;
-                    }
-                    await updateChecklist({ id: i._id, postedChecked: true });
-                  }}
-                >
-                  投稿済みにする
-                </button>
-                <button
-                  style={{ marginLeft: 6, fontSize: 12, padding: "2px 8px" }}
-                  onClick={async () => {
-                    const url = window.prompt("公開済みの記事URLを貼ってください", i.publishedUrl ?? "");
+                    const url = window.prompt("公開済みの記事URLを貼ってください（保存で自動POSTED化）", i.publishedUrl ?? "");
                     if (url === null) return;
                     await updatePublishMeta({ id: i._id, publishedUrl: url.trim() || undefined });
                   }}
                 >
-                  記事URL保存
+                  記事URL保存→投稿完了
                 </button>
                 {i.publishedUrl && (
                   <a href={i.publishedUrl} target="_blank" rel="noreferrer" style={{ marginLeft: 8, fontSize: 12 }}>

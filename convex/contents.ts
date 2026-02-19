@@ -96,10 +96,20 @@ export const updatePublishMeta = mutation({
       publishedUrl?: string;
       discordMessageUrl?: string;
       discordMessageId?: string;
+      postedChecked?: boolean;
+      stage?: "posted";
     } = {};
-    if (args.publishedUrl !== undefined) patch.publishedUrl = args.publishedUrl;
+
+    if (args.publishedUrl !== undefined) {
+      patch.publishedUrl = args.publishedUrl;
+      if (args.publishedUrl && args.publishedUrl.trim().length > 0) {
+        patch.postedChecked = true;
+        patch.stage = "posted";
+      }
+    }
     if (args.discordMessageUrl !== undefined) patch.discordMessageUrl = args.discordMessageUrl;
     if (args.discordMessageId !== undefined) patch.discordMessageId = args.discordMessageId;
+
     await ctx.db.patch(args.id, patch);
   },
 });
