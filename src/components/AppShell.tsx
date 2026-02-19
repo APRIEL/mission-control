@@ -7,7 +7,7 @@ type Key = "tasks" | "calendar" | "pipeline" | "memory" | "team" | "office";
 
 const NAV: Array<{ key: Key; href: string; label: string; icon: string }> = [
   { key: "tasks", href: "/", label: "タスク", icon: "✅" },
-  { key: "pipeline", href: "/pipeline", label: "コンテンツ", icon: "🗂️" },
+  { key: "pipeline", href: "/pipeline", label: "パイプライン", icon: "🗂️" },
   { key: "calendar", href: "/calendar", label: "カレンダー", icon: "🗓️" },
   { key: "memory", href: "/memory", label: "メモリー", icon: "🧠" },
   { key: "team", href: "/team", label: "チーム", icon: "👥" },
