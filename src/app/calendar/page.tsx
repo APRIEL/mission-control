@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
@@ -13,30 +13,42 @@ export default function CalendarPage() {
 
   const [title, setTitle] = useState("");
   const [schedule, setSchedule] = useState("");
+  const [syncMessage, setSyncMessage] = useState("");
+  const didAutoSync = useRef(false);
+
+  const syncFromOpenClaw = async () => {
+    try {
+      const res = await fetch("/api/openclaw/cron");
+      const data = await res.json();
+      if (!data?.ok) {
+        setSyncMessage("cron取得失敗: " + (data?.error ?? "unknown"));
+        return;
+      }
+
+      const items = (data.jobs ?? []).map((j: any) => ({
+        title: j.name ?? "(no-name)",
+        schedule:
+          j.schedule?.kind === "cron"
+            ? `${j.schedule.expr} (${j.schedule.tz ?? "UTC"})`
+            : JSON.stringify(j.schedule),
+      }));
+      await upsertFromCron({ items });
+      setSyncMessage(`cron自動同期完了: ${items.length}件取得`);
+    } catch (e: any) {
+      setSyncMessage("cron取得失敗: " + (e?.message ?? "unknown"));
+    }
+  };
 
   useEffect(() => {
     seedIfEmpty();
   }, [seedIfEmpty]);
 
-  const syncFromOpenClaw = async () => {
-    const res = await fetch("/api/openclaw/cron");
-    const data = await res.json();
-    if (!data?.ok) {
-      alert("cron取得失敗: " + (data?.error ?? "unknown"));
-      return;
-    }
+  useEffect(() => {
+    if (didAutoSync.current) return;
+    didAutoSync.current = true;
+    syncFromOpenClaw();
+  }, []);
 
-    const items = (data.jobs ?? []).map((j: any) => ({
-      title: j.name ?? "(no-name)",
-      schedule:
-        j.schedule?.kind === "cron"
-          ? `${j.schedule.expr} (${j.schedule.tz ?? "UTC"})`
-          : JSON.stringify(j.schedule),
-    }));
-
-    await upsertFromCron({ items });
-    alert("cron同期が完了しました");
-  };
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !schedule.trim()) return;
@@ -48,7 +60,6 @@ export default function CalendarPage() {
     setTitle("");
     setSchedule("");
   };
-
   return (
     <main style={{ maxWidth: 900, margin: "40px auto", fontFamily: "sans-serif" }}>
       <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
@@ -59,8 +70,14 @@ export default function CalendarPage() {
       <h1>Mission Control - Calendar</h1>
 
       <button onClick={syncFromOpenClaw} style={{ padding: "8px 12px", marginBottom: 12 }}>
-        OpenClaw cron を同期
+        OpenClaw cron を再同期
       </button>
+
+      {syncMessage && (
+        <div style={{ marginBottom: 12, fontSize: 14, opacity: 0.9 }}>
+          {syncMessage}
+        </div>
+      )}
 
       <form onSubmit={onSubmit} style={{ display: "flex", gap: 8, marginBottom: 20 }}>
         <input
