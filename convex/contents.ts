@@ -84,6 +84,20 @@ export const updateChecklist = mutation({
   },
 });
 
+export const updatePublishMeta = mutation({
+  args: {
+    id: v.id("contents"),
+    discordMessageUrl: v.optional(v.string()),
+    discordMessageId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const patch: { discordMessageUrl?: string; discordMessageId?: string } = {};
+    if (args.discordMessageUrl !== undefined) patch.discordMessageUrl = args.discordMessageUrl;
+    if (args.discordMessageId !== undefined) patch.discordMessageId = args.discordMessageId;
+    await ctx.db.patch(args.id, patch);
+  },
+});
+
 export const upsertFromDrafts = mutation({
   args: {
     items: v.array(

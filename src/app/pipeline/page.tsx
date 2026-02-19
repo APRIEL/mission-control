@@ -27,6 +27,7 @@ export default function PipelinePage() {
   const createItem = useMutation(api.contents.create);
   const updateStage = useMutation(api.contents.updateStage);
   const updateChecklist = useMutation(api.contents.updateChecklist);
+  const updatePublishMeta = useMutation(api.contents.updatePublishMeta);
   const upsertFromDrafts = useMutation(api.contents.upsertFromDrafts);
 
   const [title, setTitle] = useState("");
@@ -143,6 +144,21 @@ export default function PipelinePage() {
                 >
                   投稿済みにする
                 </button>
+                <button
+                  style={{ marginLeft: 6, fontSize: 12, padding: "2px 8px" }}
+                  onClick={async () => {
+                    const url = window.prompt("Discord投稿URLを貼ってください", i.discordMessageUrl ?? "");
+                    if (url === null) return;
+                    await updatePublishMeta({ id: i._id, discordMessageUrl: url.trim() || undefined });
+                  }}
+                >
+                  投稿URL保存
+                </button>
+                {i.discordMessageUrl && (
+                  <a href={i.discordMessageUrl} target="_blank" rel="noreferrer" style={{ marginLeft: 8, fontSize: 12 }}>
+                    投稿を開く
+                  </a>
+                )}
               </li>
             ))}
           </ul>
@@ -210,6 +226,11 @@ export default function PipelinePage() {
                     {item.sourcePath && (
                       <div style={{ fontSize: 11, opacity: 0.65, marginTop: 4, wordBreak: "break-all" }}>
                         {item.sourcePath}
+                      </div>
+                    )}
+                    {item.discordMessageUrl && (
+                      <div style={{ fontSize: 11, marginTop: 4 }}>
+                        <a href={item.discordMessageUrl} target="_blank" rel="noreferrer">Discord投稿リンク</a>
                       </div>
                     )}
 
