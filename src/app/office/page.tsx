@@ -91,21 +91,21 @@ export default function OfficePage() {
   }, [jobs, members]);
 
   return (
-    <AppShell active="office" title="The Office">
+    <AppShell active="office" title="オフィス">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14, marginBottom: 12, fontSize: 13, flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
           <span>合計: {summary.total}</span>
-          <span style={{ color: "#22c55e" }}>Working: {summary.working}</span>
-          <span style={{ color: "#ef4444" }}>Blocked: {summary.blocked}</span>
-          <span style={{ color: "#f59e0b" }}>Idle: {summary.idle}</span>
-          <span style={{ color: "#94a3b8" }}>Offline: {summary.offline}</span>
+          <span style={{ color: "#22c55e" }}>稼働中: {summary.working}</span>
+          <span style={{ color: "#ef4444" }}>停止中: {summary.blocked}</span>
+          <span style={{ color: "#f59e0b" }}>待機中: {summary.idle}</span>
+          <span style={{ color: "#94a3b8" }}>オフライン: {summary.offline}</span>
         </div>
 
         <div style={{ display: "flex", gap: 12, alignItems: "center", padding: "6px 10px", border: "1px solid #334155", borderRadius: 999, background: "#0b1220" }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: "#22c55e", display: "inline-block" }} />Working</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: "#ef4444", display: "inline-block" }} />Blocked</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: "#f59e0b", display: "inline-block" }} />Idle</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: "#94a3b8", display: "inline-block" }} />Offline</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: "#22c55e", display: "inline-block" }} />稼働中</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: "#ef4444", display: "inline-block" }} />停止中</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: "#f59e0b", display: "inline-block" }} />待機中</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: "#94a3b8", display: "inline-block" }} />オフライン</span>
         </div>
       </div>
 
@@ -125,20 +125,20 @@ export default function OfficePage() {
             const pos = SLOT_POSITIONS[i];
             return (
               <div key={m._id} style={{ position: "absolute", left: pos.left, top: `calc(${pos.top} + 58px)`, transform: "translate(-50%, -50%)" }} title={`${m.name} (${m.status})`}>
-                <PixelAgent color={statusColor(m.status)} name={m.name} subtitle={m.focus || m.role} speech={m.status === "working" ? m.focus || "working..." : undefined} />
+                <PixelAgent color={statusColor(m.status)} name={m.name} subtitle={m.focus || m.role} speech={m.status === "working" ? m.focus || "作業中..." : undefined} />
               </div>
             );
           })}
         </section>
 
         <aside style={{ border: "1px solid #2b3444", borderRadius: 12, padding: 10, background: "#0f172a" }}>
-          <strong>Job Assignments</strong>
+          <strong>ジョブ担当マップ</strong>
           <ul style={{ margin: "10px 0 0 0", paddingLeft: 18, display: "grid", gap: 8, fontSize: 13 }}>
             {assignments.map((a, idx) => (
               <li key={`${a.name}-${idx}`}>
                 <div style={{ fontWeight: 700 }}>{a.name}</div>
                 <div style={{ opacity: 0.85 }}>担当: {a.owner}（{a.ownerStatus}）</div>
-                <div style={{ opacity: 0.75 }}>next: {fmt(a.nextRunAtMs)}</div>
+                <div style={{ opacity: 0.75 }}>次回: {fmt(a.nextRunAtMs)}</div>
               </li>
             ))}
           </ul>
