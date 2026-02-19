@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { AppShell } from "../../components/AppShell";
 
 const STAGES = ["idea", "draft", "thumbnail", "ready", "posted"] as const;
 type Stage = (typeof STAGES)[number];
@@ -51,43 +51,21 @@ export default function PipelinePage() {
       .map((i) => {
         const fact = i.factChecked ?? false;
         const cta = i.ctaChecked ?? false;
-        const nextAction = !fact
-          ? "事実確認"
-          : !cta
-          ? "CTA確認"
-          : i.stage === "idea"
-          ? "下書き作成"
-          : i.stage === "draft"
-          ? "サムネ準備"
-          : "最終確認";
+        const nextAction = !fact ? "事実確認" : !cta ? "CTA確認" : i.stage === "idea" ? "下書き作成" : i.stage === "draft" ? "サムネ準備" : "最終確認";
         return { ...i, nextAction };
       });
   }, [items]);
 
   const readyQueue = useMemo(() => {
-    return items
-      .filter((i) => i.stage === "ready" && !(i.postedChecked ?? false))
-      .sort((a, b) => b.createdAt - a.createdAt)
-      .slice(0, 10);
+    return items.filter((i) => i.stage === "ready" && !(i.postedChecked ?? false)).sort((a, b) => b.createdAt - a.createdAt).slice(0, 10);
   }, [items]);
 
   const syncDrafts = async () => {
     try {
       const res = await fetch("/api/pipeline/drafts");
       const data = await res.json();
-      if (!data?.ok) {
-        setSyncMessage("下書き取込失敗: " + (data?.error ?? "unknown"));
-        return;
-      }
-
-      const incoming = (data.items ?? []) as Array<{
-        title: string;
-        platform: "tiktok" | "2xko" | "other";
-        stage: "draft";
-        memo?: string;
-        sourcePath: string;
-      }>;
-
+      if (!data?.ok) return setSyncMessage("下書き取込失敗: " + (data?.error ?? "unknown"));
+      const incoming = (data.items ?? []) as Array<{ title: string; platform: "tiktok" | "2xko" | "other"; stage: "draft"; memo?: string; sourcePath: string }>;
       await upsertFromDrafts({ items: incoming });
       setSyncMessage(`下書き取込完了: ${incoming.length}件`);
     } catch (e: any) {
@@ -104,39 +82,19 @@ export default function PipelinePage() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-    await createItem({
-      title: title.trim(),
-      platform,
-      memo: memo.trim() || undefined,
-    });
+    await createItem({ title: title.trim(), platform, memo: memo.trim() || undefined });
     setTitle("");
     setMemo("");
   };
 
   return (
-    <main style={{ maxWidth: 1250, margin: "40px auto", fontFamily: "sans-serif" }}>
-      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-        <Link href="/">Tasks</Link>
-        <Link href="/calendar">Calendar</Link>
-        <strong>Pipeline</strong>
-        <Link href="/memory">Memory</Link>
-        <Link href="/team">Team</Link>
-        <Link href="/office">Office</Link>
-      </div>
-
-      <h1>Mission Control - Content Pipeline</h1>
-
-      <button onClick={syncDrafts} style={{ padding: "8px 12px", marginBottom: 12 }}>
-        content-drafts を再取込
-      </button>
-
+    <AppShell active="pipeline" title="Content Pipeline">
+      <button onClick={syncDrafts} style={{ padding: "8px 12px", marginBottom: 12 }}>content-drafts を再取込</button>
       {syncMessage && <div style={{ marginBottom: 12, opacity: 0.9 }}>{syncMessage}</div>}
 
       <section style={{ border: "1px solid #666", borderRadius: 8, padding: 12, marginBottom: 20 }}>
         <h2 style={{ marginTop: 0 }}>最終確認キュー（READY）</h2>
-        {readyQueue.length === 0 ? (
-          <div style={{ fontSize: 14, opacity: 0.8 }}>投稿待ちはありません。</div>
-        ) : (
+        {readyQueue.length === 0 ? <div style={{ fontSize: 14, opacity: 0.8 }}>投稿待ちはありません。</div> : (
           <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 8 }}>
             {readyQueue.map((i) => (
               <li key={`ready-${i._id}`}>
@@ -172,11 +130,7 @@ export default function PipelinePage() {
                     記事URL保存→投稿完了
                   </button>
                 )}
-                {i.publishedUrl && (
-                  <a href={i.publishedUrl} target="_blank" rel="noreferrer" style={{ marginLeft: 8, fontSize: 12 }}>
-                    記事を開く
-                  </a>
-                )}
+                {i.publishedUrl && <a href={i.publishedUrl} target="_blank" rel="noreferrer" style={{ marginLeft: 8, fontSize: 12 }}>記事を開く</a>}
               </li>
             ))}
           </ul>
@@ -185,42 +139,20 @@ export default function PipelinePage() {
 
       <section style={{ border: "1px solid #666", borderRadius: 8, padding: 12, marginBottom: 20 }}>
         <h2 style={{ marginTop: 0 }}>今日やること（READY未満）</h2>
-        {todayFocus.length === 0 ? (
-          <div style={{ fontSize: 14, opacity: 0.8 }}>未完了タスクはありません 🎉</div>
-        ) : (
+        {todayFocus.length === 0 ? <div style={{ fontSize: 14, opacity: 0.8 }}>未完了タスクはありません 🎉</div> : (
           <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
-            {todayFocus.map((i) => (
-              <li key={`focus-${i._id}`}>
-                <strong>{i.title}</strong>（{platformLabel(i.platform)} / {stageLabel(i.stage)}）→ 次: {i.nextAction}
-              </li>
-            ))}
+            {todayFocus.map((i) => <li key={`focus-${i._id}`}><strong>{i.title}</strong>（{platformLabel(i.platform)} / {stageLabel(i.stage)}）→ 次: {i.nextAction}</li>)}
           </ul>
         )}
       </section>
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 8, marginBottom: 20 }}>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="コンテンツ名（例: AIで業務短縮3選）"
-          style={{ padding: 8 }}
-        />
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="コンテンツ名（例: AIで業務短縮3選）" style={{ padding: 8 }} />
         <div style={{ display: "flex", gap: 8 }}>
-          <select
-            value={platform}
-            onChange={(e) => setPlatform(e.target.value as "tiktok" | "2xko" | "other")}
-            style={{ padding: 8 }}
-          >
-            <option value="tiktok">TikTok</option>
-            <option value="2xko">2XKO</option>
-            <option value="other">Other</option>
+          <select value={platform} onChange={(e) => setPlatform(e.target.value as "tiktok" | "2xko" | "other")} style={{ padding: 8 }}>
+            <option value="tiktok">TikTok</option><option value="2xko">2XKO</option><option value="other">Other</option>
           </select>
-          <input
-            value={memo}
-            onChange={(e) => setMemo(e.target.value)}
-            placeholder="メモ（任意）"
-            style={{ flex: 1, padding: 8 }}
-          />
+          <input value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="メモ（任意）" style={{ flex: 1, padding: 8 }} />
           <button type="submit" style={{ padding: "8px 12px" }}>追加</button>
         </div>
       </form>
@@ -241,74 +173,24 @@ export default function PipelinePage() {
                     <div style={{ fontWeight: 700 }}>{item.title}</div>
                     <div style={{ fontSize: 12, opacity: 0.8 }}>{platformLabel(item.platform)}</div>
                     {item.memo && <div style={{ fontSize: 12, marginTop: 4 }}>{item.memo}</div>}
-                    {item.sourcePath && (
-                      <div style={{ fontSize: 11, opacity: 0.65, marginTop: 4, wordBreak: "break-all" }}>
-                        {item.sourcePath}
-                      </div>
-                    )}
-                    {item.publishedUrl && (
-                      <div style={{ fontSize: 11, marginTop: 4 }}>
-                        <a href={item.publishedUrl} target="_blank" rel="noreferrer">公開記事URL</a>
-                      </div>
-                    )}
-                    {item.discordMessageUrl && (
-                      <div style={{ fontSize: 11, marginTop: 2, opacity: 0.8 }}>
-                        <a href={item.discordMessageUrl} target="_blank" rel="noreferrer">Discord投稿リンク（任意）</a>
-                      </div>
-                    )}
+                    {item.sourcePath && <div style={{ fontSize: 11, opacity: 0.65, marginTop: 4, wordBreak: "break-all" }}>{item.sourcePath}</div>}
+                    {item.publishedUrl && <div style={{ fontSize: 11, marginTop: 4 }}><a href={item.publishedUrl} target="_blank" rel="noreferrer">公開記事URL</a></div>}
+                    {item.discordMessageUrl && <div style={{ fontSize: 11, marginTop: 2, opacity: 0.8 }}><a href={item.discordMessageUrl} target="_blank" rel="noreferrer">Discord投稿リンク（任意）</a></div>}
 
                     <div style={{ marginTop: 8, fontSize: 12 }}>
                       <strong>投稿チェックリスト</strong>
                       <div style={{ display: "grid", gap: 4, marginTop: 4 }}>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={fact}
-                            onChange={(e) => updateChecklist({ id: item._id, factChecked: e.target.checked })}
-                          />{" "}
-                          事実確認
-                        </label>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={cta}
-                            onChange={(e) => updateChecklist({ id: item._id, ctaChecked: e.target.checked })}
-                          />{" "}
-                          CTA確認
-                        </label>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={posted}
-                            onChange={(e) => updateChecklist({ id: item._id, postedChecked: e.target.checked })}
-                          />{" "}
-                          投稿済み
-                        </label>
+                        <label><input type="checkbox" checked={fact} onChange={(e) => updateChecklist({ id: item._id, factChecked: e.target.checked })} /> 事実確認</label>
+                        <label><input type="checkbox" checked={cta} onChange={(e) => updateChecklist({ id: item._id, ctaChecked: e.target.checked })} /> CTA確認</label>
+                        <label><input type="checkbox" checked={posted} onChange={(e) => updateChecklist({ id: item._id, postedChecked: e.target.checked })} /> 投稿済み</label>
                       </div>
                     </div>
 
-                    <div style={{ marginTop: 8, fontSize: 11, opacity: 0.85 }}>
-                      最終確認状態: {readyByChecklist ? "READY" : "未完了"}
-                    </div>
+                    <div style={{ marginTop: 8, fontSize: 11, opacity: 0.85 }}>最終確認状態: {readyByChecklist ? "READY" : "未完了"}</div>
 
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
-                      {STAGES.map((s) => (
-                        <button
-                          key={s}
-                          onClick={() => updateStage({ id: item._id, stage: s })}
-                          style={{ fontSize: 11, padding: "4px 6px", opacity: s === item.stage ? 1 : 0.7 }}
-                        >
-                          {s}
-                        </button>
-                      ))}
-                      {readyByChecklist && item.stage !== "ready" && item.stage !== "posted" && (
-                        <button
-                          onClick={() => updateStage({ id: item._id, stage: "ready" })}
-                          style={{ fontSize: 11, padding: "4px 6px" }}
-                        >
-                          READYへ
-                        </button>
-                      )}
+                      {STAGES.map((s) => <button key={s} onClick={() => updateStage({ id: item._id, stage: s })} style={{ fontSize: 11, padding: "4px 6px", opacity: s === item.stage ? 1 : 0.7 }}>{s}</button>)}
+                      {readyByChecklist && item.stage !== "ready" && item.stage !== "posted" && <button onClick={() => updateStage({ id: item._id, stage: "ready" })} style={{ fontSize: 11, padding: "4px 6px" }}>READYへ</button>}
                     </div>
                   </article>
                 );
@@ -317,6 +199,6 @@ export default function PipelinePage() {
           </section>
         ))}
       </div>
-    </main>
+    </AppShell>
   );
 }

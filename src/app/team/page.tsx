@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { AppShell } from "../../components/AppShell";
 
 const STATUSES = ["idle", "working", "blocked", "offline"] as const;
-
 type Status = (typeof STATUSES)[number];
 
 export default function TeamPage() {
@@ -23,12 +22,7 @@ export default function TeamPage() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !role.trim()) return;
-    await createMember({
-      name: name.trim(),
-      role: role.trim(),
-      focus: focus.trim() || undefined,
-      ownsKeywords: ownsKeywords.trim() || undefined,
-    });
+    await createMember({ name: name.trim(), role: role.trim(), focus: focus.trim() || undefined, ownsKeywords: ownsKeywords.trim() || undefined });
     setName("");
     setRole("");
     setFocus("");
@@ -36,18 +30,7 @@ export default function TeamPage() {
   };
 
   return (
-    <main style={{ maxWidth: 1000, margin: "40px auto", fontFamily: "sans-serif" }}>
-      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-        <Link href="/">Tasks</Link>
-        <Link href="/calendar">Calendar</Link>
-        <Link href="/pipeline">Pipeline</Link>
-        <Link href="/memory">Memory</Link>
-        <strong>Team</strong>
-        <Link href="/office">Office</Link>
-      </div>
-
-      <h1>Mission Control - Team</h1>
-
+    <AppShell active="team" title="Team">
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 8, marginBottom: 20 }}>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="メンバー名（例: Research Agent）" style={{ padding: 8 }} />
         <input value={role} onChange={(e) => setRole(e.target.value)} placeholder="役割（例: リサーチ）" style={{ padding: 8 }} />
@@ -67,9 +50,7 @@ export default function TeamPage() {
 
             <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
               {STATUSES.map((s) => (
-                <button key={s} onClick={() => updateStatus({ id: m._id, status: s as Status })}>
-                  {s}
-                </button>
+                <button key={s} onClick={() => updateStatus({ id: m._id, status: s as Status })}>{s}</button>
               ))}
               <button
                 onClick={async () => {
@@ -93,6 +74,6 @@ export default function TeamPage() {
           </article>
         ))}
       </div>
-    </main>
+    </AppShell>
   );
 }
