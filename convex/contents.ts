@@ -25,7 +25,7 @@ export const create = mutation({
     memo: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await ctx.db.insert("contents", {
+    return await ctx.db.insert("contents", {
       title: args.title,
       platform: args.platform,
       stage: "idea",

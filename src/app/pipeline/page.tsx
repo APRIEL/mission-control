@@ -78,6 +78,15 @@ export default function PipelinePage() {
     setMemo("");
   };
 
+  const quickAddToStage = async (stage: Stage) => {
+    const t = window.prompt(`${stageLabel(stage)} に追加するタイトル`, "");
+    if (t === null || !t.trim()) return;
+    const id = await createItem({ title: t.trim(), platform, memo: memo.trim() || undefined });
+    if (stage !== "idea") {
+      await updateStage({ id, stage });
+    }
+  };
+
   return (
     <AppShell active="pipeline" title="パイプライン">
       <div style={{ marginBottom: 14, opacity: 0.85 }}>アイデア → 下書き → サムネ → 最終確認 → 投稿済み</div>
@@ -116,7 +125,13 @@ export default function PipelinePage() {
             <section key={stage} style={{ border: `1px solid ${c.border}`, borderRadius: 12, background: "#0b111b", minHeight: 420, display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 10px 8px 10px", borderBottom: "1px solid #1f2937" }}>
                 <strong style={{ color: c.text }}>{stageLabel(stage)}</strong>
-                <span style={{ opacity: 0.7 }}>＋</span>
+                <button
+                  onClick={() => quickAddToStage(stage)}
+                  style={{ opacity: 0.85, background: "transparent", border: `1px solid ${c.border}`, color: c.text, borderRadius: 6, padding: "0 6px", cursor: "pointer" }}
+                  title={`${stageLabel(stage)} に追加`}
+                >
+                  ＋
+                </button>
               </div>
 
               <div style={{ padding: 8, display: "grid", gap: 8 }}>
