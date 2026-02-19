@@ -5,18 +5,20 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { AppShell } from "../components/AppShell";
 
-const COLUMNS = ["todo", "doing", "done"] as const;
+const COLUMNS = ["todo", "doing", "review", "done"] as const;
 type Col = (typeof COLUMNS)[number];
 
 function colLabel(c: Col) {
   if (c === "todo") return "バックログ";
   if (c === "doing") return "進行中";
+  if (c === "review") return "レビュー";
   return "完了";
 }
 
 function colDot(c: Col) {
   if (c === "todo") return "#a78bfa";
   if (c === "doing") return "#60a5fa";
+  if (c === "review") return "#fbbf24";
   return "#34d399";
 }
 
@@ -44,9 +46,10 @@ export default function Home() {
   const stats = useMemo(() => {
     const total = filtered.length;
     const doing = grouped.doing.length;
+    const review = grouped.review.length;
     const done = grouped.done.length;
     const completion = total === 0 ? 0 : Math.round((done / total) * 100);
-    return { total, doing, done, completion };
+    return { total, doing, review, done, completion };
   }, [filtered, grouped]);
 
   const onSubmit = async (e: FormEvent) => {
@@ -72,6 +75,9 @@ export default function Home() {
         <div style={{ display: "flex", alignItems: "baseline", gap: 6, color: "#a78bfa" }}>
           <span>{stats.doing}</span><span style={{ fontSize: 14, opacity: 0.7, color: "#e5e7eb" }}>進行中</span>
         </div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 6, color: "#fbbf24" }}>
+          <span>{stats.review}</span><span style={{ fontSize: 14, opacity: 0.7, color: "#e5e7eb" }}>レビュー</span>
+        </div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
           <span>{stats.total}</span><span style={{ fontSize: 14, opacity: 0.7 }}>総数</span>
         </div>
@@ -96,7 +102,7 @@ export default function Home() {
         </select>
       </form>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10 }}>
         {COLUMNS.map((c) => (
           <section key={c} style={{ border: "1px solid #1f2937", borderRadius: 12, minHeight: 460, background: "#0b111b" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 10px 8px 10px", borderBottom: "1px solid #1f2937" }}>

@@ -26,7 +26,7 @@ export const create = mutation({
 export const updateStatus = mutation({
   args: {
     id: v.id("tasks"),
-    status: v.union(v.literal("todo"), v.literal("doing"), v.literal("done")),
+    status: v.union(v.literal("todo"), v.literal("doing"), v.literal("review"), v.literal("done")),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { status: args.status });
