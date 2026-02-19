@@ -19,6 +19,43 @@ function statusColor(status: string) {
   return "#94a3b8";
 }
 
+function PixelAgent({ color, name, subtitle }: { color: string; name: string; subtitle: string }) {
+  return (
+    <div style={{ textAlign: "center" }}>
+      <div style={{ position: "relative", width: 28, height: 28, margin: "0 auto 4px auto" }}>
+        <div
+          style={{
+            position: "absolute",
+            left: 8,
+            top: 0,
+            width: 12,
+            height: 8,
+            background: color,
+            border: "1px solid #0f172a",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            left: 6,
+            top: 8,
+            width: 16,
+            height: 10,
+            background: color,
+            border: "1px solid #0f172a",
+          }}
+        />
+        <div style={{ position: "absolute", left: 6, top: 18, width: 6, height: 8, background: color, border: "1px solid #0f172a" }} />
+        <div style={{ position: "absolute", left: 16, top: 18, width: 6, height: 8, background: color, border: "1px solid #0f172a" }} />
+        <div style={{ position: "absolute", left: 2, top: 10, width: 4, height: 6, background: color, border: "1px solid #0f172a" }} />
+        <div style={{ position: "absolute", right: 2, top: 10, width: 4, height: 6, background: color, border: "1px solid #0f172a" }} />
+      </div>
+      <div style={{ fontSize: 12, fontWeight: 700 }}>{name}</div>
+      <div style={{ fontSize: 11, opacity: 0.8 }}>{subtitle}</div>
+    </div>
+  );
+}
+
 function fmt(ms?: number | null) {
   if (!ms) return "-";
   return new Date(ms).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
@@ -127,25 +164,12 @@ export default function OfficePage() {
                 style={{
                   position: "absolute",
                   left: pos.left,
-                  top: `calc(${pos.top} + 54px)`,
+                  top: `calc(${pos.top} + 58px)`,
                   transform: "translate(-50%, -50%)",
-                  textAlign: "center",
                 }}
+                title={`${m.name} (${m.status})`}
               >
-                <div
-                  title={`${m.name} (${m.status})`}
-                  style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: 999,
-                    background: statusColor(m.status),
-                    margin: "0 auto 6px auto",
-                    border: "2px solid #111827",
-                    boxShadow: "0 0 0 2px rgba(255,255,255,0.06)",
-                  }}
-                />
-                <div style={{ fontSize: 12, fontWeight: 700 }}>{m.name}</div>
-                <div style={{ fontSize: 11, opacity: 0.8 }}>{m.focus || m.role}</div>
+                <PixelAgent color={statusColor(m.status)} name={m.name} subtitle={m.focus || m.role} />
               </div>
             );
           })}
