@@ -44,4 +44,19 @@ export default defineSchema({
     ownsKeywords: v.optional(v.string()),
     createdAt: v.number(),
   }),
+  activities: defineTable({
+    type: v.string(),
+    message: v.string(),
+    detail: v.optional(v.string()),
+    level: v.union(v.literal("info"), v.literal("warn"), v.literal("error")),
+    createdAt: v.number(),
+  }),
+  approvals: defineTable({
+    title: v.string(),
+    source: v.optional(v.string()),
+    note: v.optional(v.string()),
+    status: v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected"), v.literal("timeout")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }),
 });

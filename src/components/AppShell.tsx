@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-type Key = "tasks" | "calendar" | "pipeline" | "memory" | "team" | "office";
+type Key = "tasks" | "calendar" | "pipeline" | "memory" | "team" | "office" | "activity" | "search" | "approvals";
 
 const NAV: Array<{ key: Key; href: string; label: string; icon: string }> = [
   { key: "tasks", href: "/", label: "タスク", icon: "✅" },
   { key: "pipeline", href: "/pipeline", label: "パイプライン", icon: "🗂️" },
+  { key: "approvals", href: "/approvals", label: "承認", icon: "🛂" },
   { key: "calendar", href: "/calendar", label: "カレンダー", icon: "🗓️" },
+  { key: "activity", href: "/activity", label: "アクティビティ", icon: "⚡" },
+  { key: "search", href: "/search", label: "検索", icon: "🔎" },
   { key: "memory", href: "/memory", label: "メモリー", icon: "🧠" },
   { key: "team", href: "/team", label: "チーム", icon: "👥" },
   { key: "office", href: "/office", label: "オフィス", icon: "🏢" },

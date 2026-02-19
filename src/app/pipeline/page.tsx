@@ -37,6 +37,7 @@ export default function PipelinePage() {
   const updateChecklist = useMutation(api.contents.updateChecklist);
   const updatePublishMeta = useMutation(api.contents.updatePublishMeta);
   const upsertFromDrafts = useMutation(api.contents.upsertFromDrafts);
+  const addActivity = useMutation(api.activities.add);
 
   const [title, setTitle] = useState("");
   const [platform, setPlatform] = useState<"tiktok" | "2xko" | "other">("tiktok");
@@ -58,6 +59,7 @@ export default function PipelinePage() {
       if (!data?.ok) return setSyncMessage("下書き取込失敗: " + (data?.error ?? "unknown"));
       const incoming = (data.items ?? []) as Array<{ title: string; platform: "tiktok" | "2xko" | "other"; stage: "draft"; memo?: string; sourcePath: string }>;
       await upsertFromDrafts({ items: incoming });
+      await addActivity({ type: "pipeline", message: "下書き取込", detail: `${incoming.length}件`, level: "info" });
       setSyncMessage(`下書き取込完了: ${incoming.length}件`);
     } catch (e: any) {
       setSyncMessage("下書き取込失敗: " + (e?.message ?? "unknown"));
@@ -74,6 +76,7 @@ export default function PipelinePage() {
     e.preventDefault();
     if (!title.trim()) return;
     await createItem({ title: title.trim(), platform, memo: memo.trim() || undefined });
+    await addActivity({ type: "pipeline", message: "コンテンツ追加", detail: title.trim(), level: "info" });
     setTitle("");
     setMemo("");
   };
@@ -85,6 +88,7 @@ export default function PipelinePage() {
     if (stage !== "idea") {
       await updateStage({ id, stage });
     }
+    await addActivity({ type: "pipeline", message: `ステージ追加: ${stageLabel(stage)}`, detail: t.trim(), level: "info" });
   };
 
   return (
@@ -194,7 +198,14 @@ export default function PipelinePage() {
 
                         <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 8 }}>
                           {STAGES.map((s) => (
-                            <button key={s} onClick={() => updateStage({ id: item._id, stage: s })} style={{ fontSize: 11, padding: "3px 6px", opacity: s === item.stage ? 1 : 0.65 }}>
+                            <button
+                              key={s}
+                              onClick={async () => {
+                                await updateStage({ id: item._id, stage: s });
+                                await addActivity({ type: "pipeline", message: `ステージ更新: ${stageLabel(s)}`, detail: item.title, level: "info" });
+                              }}
+                              style={{ fontSize: 11, padding: "3px 6px", opacity: s === item.stage ? 1 : 0.65 }}
+                            >
                               {stageLabel(s)}
                             </button>
                           ))}

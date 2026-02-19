@@ -26,6 +26,7 @@ export default function Home() {
   const tasks = useQuery(api.tasks.list) ?? [];
   const createTask = useMutation(api.tasks.create);
   const updateStatus = useMutation(api.tasks.updateStatus);
+  const addActivity = useMutation(api.activities.add);
 
   const [title, setTitle] = useState("");
   const [assignee, setAssignee] = useState<"human" | "ai">("ai");
@@ -56,6 +57,7 @@ export default function Home() {
     e.preventDefault();
     if (!title.trim()) return;
     await createTask({ title: title.trim(), assignee });
+    await addActivity({ type: "task", message: "タスク追加", detail: `${title.trim()} (${assignee})`, level: "info" });
     setTitle("");
   };
 
@@ -64,6 +66,7 @@ export default function Home() {
     if (t === null || !t.trim()) return;
     const id = await createTask({ title: t.trim(), assignee });
     if (col !== "todo") await updateStatus({ id, status: col });
+    await addActivity({ type: "task", message: `タスク追加（${colLabel(col)}）`, detail: t.trim(), level: "info" });
   };
 
   return (
@@ -124,7 +127,14 @@ export default function Home() {
                     <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>担当: {t.assignee === "ai" ? "AI" : "人間"}</div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
                       {COLUMNS.map((s) => (
-                        <button key={s} onClick={() => updateStatus({ id: t._id, status: s })} style={{ fontSize: 11, padding: "3px 6px", opacity: s === t.status ? 1 : 0.6 }}>
+                        <button
+                          key={s}
+                          onClick={async () => {
+                            await updateStatus({ id: t._id, status: s });
+                            await addActivity({ type: "task", message: `ステータス更新: ${colLabel(s)}`, detail: t.title, level: "info" });
+                          }}
+                          style={{ fontSize: 11, padding: "3px 6px", opacity: s === t.status ? 1 : 0.6 }}
+                        >
                           {colLabel(s)}
                         </button>
                       ))}
