@@ -39,6 +39,7 @@ export default function TeamPage() {
   const createMember = useMutation(api.team.create);
   const updateStatus = useMutation(api.team.updateStatus);
   const updateOwnership = useMutation(api.team.updateOwnership);
+  const removeMember = useMutation(api.team.remove);
 
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
@@ -193,6 +194,16 @@ export default function TeamPage() {
                   }}
                 >
                   担当更新
+                </button>
+                <button
+                  onClick={async () => {
+                    const ok = window.confirm(`本当に「${m.name}」を削除しますか？`);
+                    if (!ok) return;
+                    await removeMember({ id: m._id });
+                  }}
+                  style={{ border: "1px solid #7f1d1d", color: "#fecaca" }}
+                >
+                  削除
                 </button>
               </div>
             </article>

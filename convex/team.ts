@@ -58,3 +58,12 @@ export const updateOwnership = mutation({
     await ctx.db.patch(args.id, { ownsKeywords: args.ownsKeywords });
   },
 });
+
+export const remove = mutation({
+  args: {
+    id: v.id("teamMembers"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+  },
+});
