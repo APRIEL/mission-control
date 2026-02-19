@@ -65,13 +65,14 @@ function colorByTitle(title: string) {
 function jpJobName(name: string) {
   if (name === "content:2xko-daily-draft") return "2XKO記事下書き（毎日）";
   if (name === "content:tiktok-ai-automation-daily-pack") return "TikTok投稿パック（毎日）";
+  if (name === "content:moltbook-auto-post-hourly-check") return "Moltbook投稿チェック（毎時）";
   if (name === "research:ai-monetization-hourly") return "収益化リサーチ（毎時）";
   if (name === "briefing:morning-daily") return "モーニングブリーフィング（毎日）";
   if (name === "healthcheck:backup-alert") return "バックアップ監視（2時間ごと）";
   if (name === "healthcheck:unattended-upgrades-alert") return "自動更新監視（2時間ごと）";
   if (name === "healthcheck:security-audit") return "セキュリティ監査（毎日）";
   if (name === "healthcheck:update-status") return "更新状況確認（毎日）";
-  return name;
+  return `未翻訳ジョブ: ${name}`;
 }
 
 function buildWeekItems(events: any[]): WeekItem[] {
