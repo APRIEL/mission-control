@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, ReactNode, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { AppShell } from "../../components/AppShell";
@@ -9,13 +9,37 @@ const STATUSES = ["idle", "working", "blocked", "offline"] as const;
 type Status = (typeof STATUSES)[number];
 
 function roleVisual(slot: "chief" | "scout" | "quill" | "pixel" | "echo" | "codex" | "other") {
-  if (slot === "chief") return { border: "#3b82f6", bg: "#151d2e", icon: "👑", chipBg: "#1e3a8a" };
-  if (slot === "scout") return { border: "#10b981", bg: "#10231f", icon: "🔎", chipBg: "#064e3b" };
-  if (slot === "quill") return { border: "#8b5cf6", bg: "#1e1833", icon: "✍️", chipBg: "#4c1d95" };
-  if (slot === "pixel") return { border: "#ec4899", bg: "#2a1625", icon: "🎨", chipBg: "#831843" };
-  if (slot === "echo") return { border: "#06b6d4", bg: "#10252b", icon: "📣", chipBg: "#155e75" };
-  if (slot === "codex") return { border: "#f59e0b", bg: "#2a2013", icon: "💻", chipBg: "#7c2d12" };
-  return { border: "#64748b", bg: "#1f2937", icon: "🧩", chipBg: "#334155" };
+  if (slot === "chief") return { border: "#3b82f6", bg: "#151d2e", icon: "chief", chipBg: "#1e3a8a" };
+  if (slot === "scout") return { border: "#10b981", bg: "#10231f", icon: "scout", chipBg: "#064e3b" };
+  if (slot === "quill") return { border: "#8b5cf6", bg: "#1e1833", icon: "quill", chipBg: "#4c1d95" };
+  if (slot === "pixel") return { border: "#ec4899", bg: "#2a1625", icon: "pixel", chipBg: "#831843" };
+  if (slot === "echo") return { border: "#06b6d4", bg: "#10252b", icon: "echo", chipBg: "#155e75" };
+  if (slot === "codex") return { border: "#f59e0b", bg: "#2a2013", icon: "codex", chipBg: "#7c2d12" };
+  return { border: "#64748b", bg: "#1f2937", icon: "other", chipBg: "#334155" };
+}
+
+function roleSvg(icon: string, color: string): ReactNode {
+  const common = { width: 14, height: 14, viewBox: "0 0 24 24", fill: "none", stroke: color, strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+
+  if (icon === "scout") {
+    return <svg {...common}><circle cx="11" cy="11" r="7" /><line x1="16.65" y1="16.65" x2="21" y2="21" /></svg>;
+  }
+  if (icon === "quill") {
+    return <svg {...common}><path d="M20 4L8 16" /><path d="M20 4c-3 7-7 11-14 14l3-7 11-7z" /><path d="M4 20h6" /></svg>;
+  }
+  if (icon === "pixel") {
+    return <svg {...common}><path d="M12 3a9 9 0 100 18c1.3 0 2.2-1 2.2-2.1 0-.5-.2-.9-.2-1.3 0-.8.6-1.4 1.4-1.4h1.6A4 4 0 0021 12a9 9 0 00-9-9z" /><circle cx="7.5" cy="12" r="1" /><circle cx="10" cy="8" r="1" /><circle cx="14" cy="8" r="1" /></svg>;
+  }
+  if (icon === "echo") {
+    return <svg {...common}><path d="M3 11v2" /><path d="M7 9v6" /><path d="M11 7v10" /><path d="M15 9v6" /><path d="M19 11v2" /></svg>;
+  }
+  if (icon === "codex") {
+    return <svg {...common}><rect x="3" y="4" width="18" height="14" rx="2" /><line x1="8" y1="20" x2="16" y2="20" /><line x1="9" y1="8" x2="7" y2="10" /><line x1="7" y1="10" x2="9" y2="12" /><line x1="15" y1="8" x2="17" y2="10" /><line x1="17" y1="10" x2="15" y2="12" /></svg>;
+  }
+  if (icon === "chief") {
+    return <svg {...common}><path d="M4 8l3 3 5-7 5 7 3-3v10H4z" /></svg>;
+  }
+  return <svg {...common}><circle cx="12" cy="12" r="8" /><path d="M12 8v8" /><path d="M8 12h8" /></svg>;
 }
 
 function statusDot(status: string) {
@@ -102,7 +126,7 @@ export default function TeamPage() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${roleVisual("chief").border}`, display: "grid", placeItems: "center" }}>{roleVisual("chief").icon}</div>
+            <div style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${roleVisual("chief").border}`, display: "grid", placeItems: "center" }}>{roleSvg(roleVisual("chief").icon, roleVisual("chief").border)}</div>
             <div style={{ fontWeight: 700, fontSize: 18 }}>{chief.name}</div>
             <span style={{ marginLeft: "auto", fontSize: 12, opacity: 0.8 }}>統括カード →</span>
           </div>
@@ -127,7 +151,7 @@ export default function TeamPage() {
             <article key={m._id} style={{ border: `1px solid ${c.border}`, background: c.bg, borderRadius: 12, padding: 12 }}>
               <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 6 }}>{slotName}</div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 22, height: 22, borderRadius: 6, border: `1px solid ${c.border}`, display: "grid", placeItems: "center" }}>{c.icon}</div>
+                <div style={{ width: 22, height: 22, borderRadius: 6, border: `1px solid ${c.border}`, display: "grid", placeItems: "center" }}>{roleSvg(c.icon, c.border)}</div>
                 <strong>{m.name}</strong>
                 <span style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: 999, background: statusDot(m.status) }} />
               </div>
@@ -149,7 +173,7 @@ export default function TeamPage() {
         return (
           <section key={m._id} style={{ border: `1px solid ${c.border}`, background: c.bg, borderRadius: 12, padding: 12, maxWidth: 700, margin: "0 auto 24px auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 22, height: 22, borderRadius: 6, border: `1px solid ${c.border}`, display: "grid", placeItems: "center" }}>{c.icon}</div>
+              <div style={{ width: 22, height: 22, borderRadius: 6, border: `1px solid ${c.border}`, display: "grid", placeItems: "center" }}>{roleSvg(c.icon, c.border)}</div>
               <strong>{m.name}</strong>
               <span style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: 999, background: statusDot(m.status) }} />
             </div>
