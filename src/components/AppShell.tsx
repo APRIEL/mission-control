@@ -31,6 +31,14 @@ export function AppShell({
     return NAV.filter((n) => `${n.label} ${n.key}`.toLowerCase().includes(s));
   }, [q]);
 
+  const runPageSearch = (forward = true) => {
+    const s = q.trim();
+    if (!s) return;
+    if (typeof window !== "undefined" && typeof window.find === "function") {
+      window.find(s, false, !forward, true, false, false, false);
+    }
+  };
+
   return (
     <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", minHeight: "100vh", background: "#0b0f17", color: "#e5e7eb", fontFamily: "sans-serif" }}>
       <aside style={{ borderRight: "1px solid #1f2937", padding: "16px 12px" }}>
@@ -59,9 +67,14 @@ export function AppShell({
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") runPageSearch(true);
+              }}
               placeholder="Search"
               style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #334155", background: "#111827", color: "#e5e7eb", minWidth: 180 }}
             />
+            <button style={{ padding: "6px 10px" }} onClick={() => runPageSearch(true)}>Find</button>
+            <button style={{ padding: "6px 10px" }} onClick={() => runPageSearch(false)}>Prev</button>
             <button style={{ padding: "6px 10px" }}>Pause</button>
             <button style={{ padding: "6px 10px" }}>Ping</button>
           </div>
