@@ -5,9 +5,110 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { AppShell } from "../../components/AppShell";
 
+type WeekItem = {
+  id: string;
+  title: string;
+  timeLabel: string;
+  day: number; // 0=Sun ... 6=Sat
+  color: string;
+};
+
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
 function fmt(ms?: number) {
   if (!ms) return "-";
   return new Date(ms).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+}
+
+function hhmmJst(ms?: number) {
+  if (!ms) return "--:--";
+  return new Intl.DateTimeFormat("ja-JP", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Tokyo",
+  }).format(new Date(ms));
+}
+
+function dayOfWeekJst(ms?: number) {
+  if (!ms) return null;
+  const d = new Date(new Date(ms).toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+  return d.getDay();
+}
+
+function relFromNow(ms?: number) {
+  if (!ms) return "-";
+  const diff = ms - Date.now();
+  if (diff <= 0) return "now";
+  const min = Math.round(diff / 60000);
+  if (min < 60) return `in ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `in ${h} hours`;
+  const d = Math.round(h / 24);
+  return `in ${d} days`;
+}
+
+function extractCronExpr(schedule: string) {
+  const i = schedule.indexOf(" (");
+  return i > 0 ? schedule.slice(0, i).trim() : schedule.trim();
+}
+
+function colorByTitle(title: string) {
+  const t = title.toLowerCase();
+  if (t.includes("brief")) return "#7c5c15";
+  if (t.includes("security") || t.includes("healthcheck")) return "#5b1f30";
+  if (t.includes("2xko")) return "#4c1d95";
+  if (t.includes("tiktok")) return "#0f766e";
+  return "#1f3a8a";
+}
+
+function buildWeekItems(events: any[]): WeekItem[] {
+  const out: WeekItem[] = [];
+
+  for (const e of events) {
+    const title = e.title as string;
+    const color = colorByTitle(title);
+    const expr = extractCronExpr(e.schedule || "");
+    const parts = expr.split(/\s+/);
+
+    // fallback: place by nextRun day only
+    const fallbackDay = dayOfWeekJst(e.nextRunAtMs) ?? 0;
+    const fallbackTime = hhmmJst(e.nextRunAtMs);
+
+    if (parts.length >= 5) {
+      const [min, hour, dom, _mon, dow] = parts;
+      const isDaily = dom === "*" && dow === "*";
+      const isWeeklyNum = /^\d$/.test(dow);
+
+      if (isDaily) {
+        for (let d = 0; d < 7; d++) {
+          out.push({
+            id: `${e._id}-${d}`,
+            title,
+            timeLabel: /^\d+$/.test(hour) && /^\d+$/.test(min) ? `${hour.padStart(2, "0")}:${min.padStart(2, "0")}` : fallbackTime,
+            day: d,
+            color,
+          });
+        }
+        continue;
+      }
+
+      if (isWeeklyNum) {
+        out.push({
+          id: `${e._id}-w${dow}`,
+          title,
+          timeLabel: /^\d+$/.test(hour) && /^\d+$/.test(min) ? `${hour.padStart(2, "0")}:${min.padStart(2, "0")}` : fallbackTime,
+          day: Number(dow) % 7,
+          color,
+        });
+        continue;
+      }
+    }
+
+    out.push({ id: `${e._id}-f`, title, timeLabel: fallbackTime, day: fallbackDay, color });
+  }
+
+  return out;
 }
 
 export default function CalendarPage() {
@@ -23,28 +124,36 @@ export default function CalendarPage() {
   const upcoming24h = useMemo(() => {
     const now = Date.now();
     const until = now + 24 * 60 * 60 * 1000;
-    return events.filter((e) => e.nextRunAtMs && e.nextRunAtMs >= now && e.nextRunAtMs <= until).sort((a, b) => (a.nextRunAtMs ?? 0) - (b.nextRunAtMs ?? 0));
+    return events
+      .filter((e) => e.nextRunAtMs && e.nextRunAtMs >= now && e.nextRunAtMs <= until)
+      .sort((a, b) => (a.nextRunAtMs ?? 0) - (b.nextRunAtMs ?? 0));
   }, [events]);
 
-  const todaySchedule = useMemo(() => {
-    const now = new Date();
-    const nowJst = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-    const y = nowJst.getFullYear();
-    const m = nowJst.getMonth();
-    const d = nowJst.getDate();
-    const startJst = new Date(y, m, d, 0, 0, 0);
-    const endJst = new Date(y, m, d, 23, 59, 59);
-    const startUtcMs = startJst.getTime() - 9 * 60 * 60 * 1000;
-    const endUtcMs = endJst.getTime() - 9 * 60 * 60 * 1000;
-    return events.filter((e) => e.nextRunAtMs && e.nextRunAtMs >= startUtcMs && e.nextRunAtMs <= endUtcMs).sort((a, b) => (a.nextRunAtMs ?? 0) - (b.nextRunAtMs ?? 0));
+  const alwaysRunning = useMemo(() => {
+    return events.filter((e) => (e.schedule || "").includes("*/") || (e.schedule || "").includes("* * * *"));
   }, [events]);
+
+  const weekItems = useMemo(() => buildWeekItems(events), [events]);
+
+  const groupedByDay = useMemo(() => {
+    const map: Record<number, WeekItem[]> = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+    for (const it of weekItems) map[it.day].push(it);
+    for (let d = 0; d < 7; d++) map[d].sort((a, b) => a.timeLabel.localeCompare(b.timeLabel));
+    return map;
+  }, [weekItems]);
 
   const syncFromOpenClaw = async () => {
     try {
       const res = await fetch("/api/openclaw/cron");
       const data = await res.json();
       if (!data?.ok) return setSyncMessage("cron取得失敗: " + (data?.error ?? "unknown"));
-      const items = (data.jobs ?? []).map((j: any) => ({ title: j.name ?? "(no-name)", schedule: j.schedule ?? "-", enabled: !!j.enabled, nextRunAtMs: j.nextRunAtMs ?? null }));
+
+      const items = (data.jobs ?? []).map((j: any) => ({
+        title: j.name ?? "(no-name)",
+        schedule: j.schedule ?? "-",
+        enabled: !!j.enabled,
+        nextRunAtMs: j.nextRunAtMs ?? null,
+      }));
       await upsertFromCron({ items });
       setSyncMessage(`cron自動同期完了: ${items.length}件`);
     } catch (e: any) {
@@ -67,50 +176,64 @@ export default function CalendarPage() {
   };
 
   return (
-    <AppShell active="calendar" title="Calendar">
-      <button onClick={syncFromOpenClaw} style={{ padding: "8px 12px", marginBottom: 12 }}>OpenClaw cron を再同期</button>
-      {syncMessage && <div style={{ marginBottom: 12, opacity: 0.9 }}>{syncMessage}</div>}
+    <AppShell active="calendar" title="Scheduled Tasks">
+      {syncMessage && <div style={{ marginBottom: 10, opacity: 0.85 }}>{syncMessage}</div>}
 
-      <section style={{ border: "1px solid #666", borderRadius: 8, padding: 12, marginBottom: 20 }}>
-        <h2 style={{ marginTop: 0 }}>今日の予定（JST基準）</h2>
-        {todaySchedule.length === 0 ? <div style={{ fontSize: 14, opacity: 0.8 }}>今日の予定はありません。</div> : (
+      <section style={{ border: "1px solid #273244", background: "#101522", borderRadius: 10, padding: 12, marginBottom: 14 }}>
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>⚡ Always Running</div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {alwaysRunning.length === 0 ? (
+            <span style={{ opacity: 0.75 }}>none</span>
+          ) : (
+            alwaysRunning.slice(0, 8).map((e) => (
+              <span key={e._id} style={{ background: "#1e3a8a", border: "1px solid #3b82f6", borderRadius: 999, fontSize: 12, padding: "4px 10px" }}>
+                {e.title}
+              </span>
+            ))
+          )}
+        </div>
+      </section>
+
+      <section style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0,1fr))", gap: 8, marginBottom: 14 }}>
+        {DAY_LABELS.map((label, d) => (
+          <div key={label} style={{ border: "1px solid #273244", borderRadius: 10, background: d === 3 ? "#101a33" : "#101522", minHeight: 250, padding: 8 }}>
+            <div style={{ fontWeight: 700, marginBottom: 6, opacity: 0.9 }}>{label}</div>
+            <div style={{ display: "grid", gap: 6 }}>
+              {groupedByDay[d].slice(0, 6).map((it) => (
+                <div key={it.id} style={{ border: "1px solid #334155", borderLeft: `4px solid ${it.color}`, background: "#1b2130", borderRadius: 8, padding: 6 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700 }}>{it.title}</div>
+                  <div style={{ fontSize: 11, opacity: 0.75 }}>{it.timeLabel}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section style={{ border: "1px solid #273244", background: "#101522", borderRadius: 10, padding: 12, marginBottom: 16 }}>
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>📅 Next Up</div>
+        {upcoming24h.length === 0 ? (
+          <div style={{ opacity: 0.75 }}>24時間以内の予定はありません。</div>
+        ) : (
           <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
-            {todaySchedule.map((e) => <li key={`today-${e._id}`}><strong>{e.title}</strong> / {fmt(e.nextRunAtMs)}</li>)}
+            {upcoming24h.map((e) => (
+              <li key={e._id}>
+                <strong>{e.title}</strong> / {fmt(e.nextRunAtMs)} <span style={{ opacity: 0.75 }}>({relFromNow(e.nextRunAtMs)})</span>
+              </li>
+            ))}
           </ul>
         )}
       </section>
 
-      <section style={{ border: "1px solid #666", borderRadius: 8, padding: 12, marginBottom: 20 }}>
-        <h2 style={{ marginTop: 0 }}>今後24時間の予定</h2>
-        {upcoming24h.length === 0 ? <div style={{ fontSize: 14, opacity: 0.8 }}>24時間以内の予定はありません。</div> : (
-          <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
-            {upcoming24h.map((e) => <li key={`up-${e._id}`}><strong>{e.title}</strong> / {fmt(e.nextRunAtMs)}</li>)}
-          </ul>
-        )}
-      </section>
-
-      <form onSubmit={onSubmit} style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="イベント名" style={{ flex: 1, padding: 8 }} />
-        <input value={schedule} onChange={(e) => setSchedule(e.target.value)} placeholder="スケジュール" style={{ flex: 1, padding: 8 }} />
-        <button type="submit" style={{ padding: "8px 12px" }}>追加</button>
-      </form>
-
-      <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: 10 }}>
-        {events.map((e) => {
-          const cron = e.source === "openclaw-cron";
-          return (
-            <li key={e._id} style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                <strong>{e.title}</strong>
-                <span style={{ fontSize: 12, padding: "2px 8px", borderRadius: 999, background: cron ? "#e8f0ff" : "#f3f3f3" }}>{e.source}</span>
-              </div>
-              <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>schedule: {e.schedule}</div>
-              <div style={{ fontSize: 13, opacity: 0.9 }}>enabled: {e.enabled === undefined ? "-" : e.enabled ? "true" : "false"}</div>
-              <div style={{ fontSize: 13, opacity: 0.9 }}>next run (JST): {fmt(e.nextRunAtMs)}</div>
-            </li>
-          );
-        })}
-      </ul>
+      <details>
+        <summary style={{ cursor: "pointer", marginBottom: 8 }}>手動イベント追加</summary>
+        <form onSubmit={onSubmit} style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="イベント名" style={{ flex: 1, padding: 8 }} />
+          <input value={schedule} onChange={(e) => setSchedule(e.target.value)} placeholder="スケジュール" style={{ flex: 1, padding: 8 }} />
+          <button type="submit" style={{ padding: "8px 12px" }}>追加</button>
+          <button type="button" onClick={syncFromOpenClaw} style={{ padding: "8px 12px" }}>再同期</button>
+        </form>
+      </details>
     </AppShell>
   );
 }
