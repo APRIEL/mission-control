@@ -154,12 +154,29 @@ export default function OfficePage() {
       </div>
 
       <h1>The Office</h1>
-      <div style={{ display: "flex", gap: 14, marginBottom: 12, fontSize: 13 }}>
-        <span>合計: {summary.total}</span>
-        <span style={{ color: "#22c55e" }}>Working: {summary.working}</span>
-        <span style={{ color: "#ef4444" }}>Blocked: {summary.blocked}</span>
-        <span style={{ color: "#f59e0b" }}>Idle: {summary.idle}</span>
-        <span style={{ color: "#94a3b8" }}>Offline: {summary.offline}</span>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14, marginBottom: 12, fontSize: 13, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+          <span>合計: {summary.total}</span>
+          <span style={{ color: "#22c55e" }}>Working: {summary.working}</span>
+          <span style={{ color: "#ef4444" }}>Blocked: {summary.blocked}</span>
+          <span style={{ color: "#f59e0b" }}>Idle: {summary.idle}</span>
+          <span style={{ color: "#94a3b8" }}>Offline: {summary.offline}</span>
+        </div>
+
+        <div style={{ display: "flex", gap: 12, alignItems: "center", padding: "6px 10px", border: "1px solid #334155", borderRadius: 999, background: "#0b1220" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 999, background: "#22c55e", display: "inline-block" }} />Working
+          </span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 999, background: "#ef4444", display: "inline-block" }} />Blocked
+          </span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 999, background: "#f59e0b", display: "inline-block" }} />Idle
+          </span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 999, background: "#94a3b8", display: "inline-block" }} />Offline
+          </span>
+        </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 12 }}>
