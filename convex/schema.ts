@@ -31,6 +31,7 @@ export default defineSchema({
     factChecked: v.optional(v.boolean()),
     ctaChecked: v.optional(v.boolean()),
     postedChecked: v.optional(v.boolean()),
+    publishedUrl: v.optional(v.string()),
     discordMessageUrl: v.optional(v.string()),
     discordMessageId: v.optional(v.string()),
     createdAt: v.number(),

@@ -140,23 +140,29 @@ export default function PipelinePage() {
                 <strong>{i.title}</strong>（{platformLabel(i.platform)}）
                 <button
                   style={{ marginLeft: 8, fontSize: 12, padding: "2px 8px" }}
-                  onClick={() => updateChecklist({ id: i._id, postedChecked: true })}
+                  onClick={async () => {
+                    if (!i.publishedUrl) {
+                      const ok = window.confirm("記事URLが未登録です。先に『記事URL保存』を実行しますか？");
+                      if (!ok) return;
+                    }
+                    await updateChecklist({ id: i._id, postedChecked: true });
+                  }}
                 >
                   投稿済みにする
                 </button>
                 <button
                   style={{ marginLeft: 6, fontSize: 12, padding: "2px 8px" }}
                   onClick={async () => {
-                    const url = window.prompt("Discord投稿URLを貼ってください", i.discordMessageUrl ?? "");
+                    const url = window.prompt("公開済みの記事URLを貼ってください", i.publishedUrl ?? "");
                     if (url === null) return;
-                    await updatePublishMeta({ id: i._id, discordMessageUrl: url.trim() || undefined });
+                    await updatePublishMeta({ id: i._id, publishedUrl: url.trim() || undefined });
                   }}
                 >
-                  投稿URL保存
+                  記事URL保存
                 </button>
-                {i.discordMessageUrl && (
-                  <a href={i.discordMessageUrl} target="_blank" rel="noreferrer" style={{ marginLeft: 8, fontSize: 12 }}>
-                    投稿を開く
+                {i.publishedUrl && (
+                  <a href={i.publishedUrl} target="_blank" rel="noreferrer" style={{ marginLeft: 8, fontSize: 12 }}>
+                    記事を開く
                   </a>
                 )}
               </li>
@@ -228,9 +234,14 @@ export default function PipelinePage() {
                         {item.sourcePath}
                       </div>
                     )}
-                    {item.discordMessageUrl && (
+                    {item.publishedUrl && (
                       <div style={{ fontSize: 11, marginTop: 4 }}>
-                        <a href={item.discordMessageUrl} target="_blank" rel="noreferrer">Discord投稿リンク</a>
+                        <a href={item.publishedUrl} target="_blank" rel="noreferrer">公開記事URL</a>
+                      </div>
+                    )}
+                    {item.discordMessageUrl && (
+                      <div style={{ fontSize: 11, marginTop: 2, opacity: 0.8 }}>
+                        <a href={item.discordMessageUrl} target="_blank" rel="noreferrer">Discord投稿リンク（任意）</a>
                       </div>
                     )}
 

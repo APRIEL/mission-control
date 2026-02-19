@@ -87,11 +87,17 @@ export const updateChecklist = mutation({
 export const updatePublishMeta = mutation({
   args: {
     id: v.id("contents"),
+    publishedUrl: v.optional(v.string()),
     discordMessageUrl: v.optional(v.string()),
     discordMessageId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const patch: { discordMessageUrl?: string; discordMessageId?: string } = {};
+    const patch: {
+      publishedUrl?: string;
+      discordMessageUrl?: string;
+      discordMessageId?: string;
+    } = {};
+    if (args.publishedUrl !== undefined) patch.publishedUrl = args.publishedUrl;
     if (args.discordMessageUrl !== undefined) patch.discordMessageUrl = args.discordMessageUrl;
     if (args.discordMessageId !== undefined) patch.discordMessageId = args.discordMessageId;
     await ctx.db.patch(args.id, patch);
