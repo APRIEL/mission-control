@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -21,6 +22,12 @@ export default function Home() {
 
   return (
     <main style={{ maxWidth: 800, margin: "40px auto", fontFamily: "sans-serif" }}>
+      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        <strong>Tasks</strong>
+        <Link href="/calendar">Calendar</Link>
+        <Link href="/pipeline">Pipeline</Link>
+      </div>
+
       <h1>Mission Control - Tasks</h1>
 
       <form onSubmit={onSubmit} style={{ display: "flex", gap: 8, marginBottom: 20 }}>

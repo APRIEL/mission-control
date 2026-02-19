@@ -16,4 +16,17 @@ export default defineSchema({
     nextRunAtMs: v.optional(v.number()),
     createdAt: v.number(),
   }),
+  contents: defineTable({
+    title: v.string(),
+    platform: v.union(v.literal("tiktok"), v.literal("2xko"), v.literal("other")),
+    stage: v.union(
+      v.literal("idea"),
+      v.literal("draft"),
+      v.literal("thumbnail"),
+      v.literal("ready"),
+      v.literal("posted")
+    ),
+    memo: v.optional(v.string()),
+    createdAt: v.number(),
+  }),
 });

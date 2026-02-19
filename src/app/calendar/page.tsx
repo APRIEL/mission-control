@@ -60,6 +60,7 @@ export default function CalendarPage() {
       <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
         <Link href="/">Tasks</Link>
         <strong>Calendar</strong>
+        <Link href="/pipeline">Pipeline</Link>
       </div>
 
       <h1>Mission Control - Calendar</h1>
